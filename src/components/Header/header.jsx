@@ -11,7 +11,8 @@ import {
   faUser,
   faAddressBook,
   faHouse,
-  faFileCode, // Add the missing import
+  faFileCode,
+  faNewspaper, // Add the missing import
 } from "@fortawesome/free-solid-svg-icons";
 
 const Header = () => {
@@ -39,7 +40,7 @@ const Header = () => {
           </li>
           <li>
             <a href="/blog" className="text-white hover:text-gray-300 navItems">
-              <FontAwesomeIcon icon={faToilet} /> Bài viết
+              <FontAwesomeIcon icon={faNewspaper} /> Bài viết
             </a>
           </li>
           <li>
