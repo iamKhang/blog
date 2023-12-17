@@ -9,27 +9,32 @@ import {
   faMobile,
   faToilet,
   faUser,
-  faAddressBook, // Add the missing import
+  faAddressBook,
+  faHouse,
+  faFileCode, // Add the missing import
 } from "@fortawesome/free-solid-svg-icons";
-
 
 const Header = () => {
   return (
-    <header className="bg-blue-900 flex justify-between px-2 p-4">
-      <a className="text-white font-extrabold ml-2">iamHoangKhang</a>
+    <header className="bg-blue-900 flex justify-between items-center px-2 p-4">
+      <a className="text-white font-extrabold ml-2 flex items-end">
+        <p>iam</p>
+        <p className="text-amber-400 text-xl">HoangKhang</p>
+        <p className="text-green-400 text-xs">.github.io</p>
+      </a>
       <nav className="">
         <ul className="flex justify-end space-x-14 px-8">
           <li>
             <a href="/" className="text-white hover:text-gray-300 navItems">
-              Trang chủ
+              <FontAwesomeIcon icon={faHouse} /> Trang chủ
             </a>
           </li>
           <li>
             <a
-              href="/about"
+              href="/resources"
               className="text-white hover:text-gray-300 navItems"
             >
-              <FontAwesomeIcon icon={faUser} /> Thông tin
+              <FontAwesomeIcon icon={faFileCode} /> Tài nguyên
             </a>
           </li>
           <li>
@@ -46,7 +51,7 @@ const Header = () => {
                 <div className="bg-blue-900 py-3 rounded">
                   <div className="flex mx-4">
                     <label className="text-white font-semibold mr-1">
-                      <FontAwesomeIcon icon={faMobile}/> Số điện thoại:
+                      <FontAwesomeIcon icon={faMobile} /> Số điện thoại:
                     </label>
                     <a href="" className="font-semibold text-white">
                       0383741660
@@ -54,14 +59,21 @@ const Header = () => {
                   </div>
                   <div className="flex mx-4">
                     <label className="text-white font-semibold mr-1">
-                      <FontAwesomeIcon icon={faEnvelope}/> Email:
+                      <FontAwesomeIcon icon={faEnvelope} /> Email:
                     </label>
                     <a href="" className="font-semibold text-white">
                       iamhoangkhang@icloud.com
                     </a>
                   </div>
                   <div className="flex mx-4">
-                    <label className="text-white font-semibold mr-1 flex"><img src="/public/img/icon-facebook.svg" className="text-white" alt="" />  Facebook:</label>
+                    <label className="text-white font-semibold mr-1 flex">
+                      <img
+                        src="/public/img/icon-facebook.svg"
+                        className="text-white"
+                        alt=""
+                      />{" "}
+                      Facebook:
+                    </label>
                     <a href="" className="font-semibold text-white">
                       Lê Hoàng Khang
                     </a>
@@ -69,12 +81,9 @@ const Header = () => {
                 </div>
               }
             >
-              <a
-                href="/contact"
-                className="text-white hover:text-gray-300 navItems"
-              >
+              <p className="text-white hover:text-gray-300 navItems">
                 <FontAwesomeIcon icon={faAddressBook} /> Liên hệ
-              </a>
+              </p>
             </Tippy>
           </li>
           <li>
@@ -90,9 +99,9 @@ const Header = () => {
                 />
               }
             >
-              <a href="" className="text-white hover:text-gray-300 navItems">
+              <p className="text-white hover:text-gray-300 navItems">
                 <FontAwesomeIcon icon={faCoins} /> Donate
-              </a>
+              </p>
             </Tippy>
           </li>
         </ul>
