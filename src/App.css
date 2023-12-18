@@ -1,0 +1,10 @@
+/* FILEPATH: /E:/Web/my-blog/src/App.css */
+
+@font-face {
+    font-family: 'MyCustomFont';
+    src: url('/public/font/TikTok\ Sans/') format('truetype');
+}
+
+body {
+    font-family: 'MyCustomFont', sans-serif;
+}
