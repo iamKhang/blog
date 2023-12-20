@@ -21,7 +21,7 @@ const Header = () => {
       <a className="text-white font-extrabold ml-2 flex items-end">
         <p>iam</p>
         <p className="text-amber-400 text-xl">HoangKhang</p>
-        <p className="text-green-400 text-xs">.github.io</p>
+        {/* <p className="text-green-400 text-xs">.github.io</p> */}
       </a>
       <nav className="">
         <ul className="flex justify-end space-x-14 px-8">

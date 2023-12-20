@@ -23,7 +23,7 @@ export default function Menu() {
   };
 
   useEffect(() => {
-    fetch("/data/tai-nguyen.daiHoc.json")
+    fetch("/public/data/blog-data.dai-hoc.json")
       .then((response) => response.json())
       .then((data) => setHocKyData(data));
   }, []);
@@ -72,25 +72,55 @@ export default function Menu() {
         </ul>
       </div>
       {selectedMonHoc && (
-        <div className="p-4 w-full">
-          <h2 className="text-center text-5xl text-green-700 font-bold">
-            {selectedMonHoc.tenMon}
-          </h2>
-          <p>Số tín chỉ: {selectedMonHoc.soTinChi}</p>
-          <p>Giáo viên: {selectedMonHoc.giaoVien}</p>
-          <h3>Tài liệu tham khảo:</h3>
-          <ul>
-            {selectedMonHoc.taiLieuThamKhao.map((taiLieu) => (
-              <li key={taiLieu.ten} className="flex">
-                <p className="mx-3">{taiLieu.ten}:</p>
-                <a href={taiLieu.link} className="text-cyan-600 underline">
-                  {taiLieu.link}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+  <div className="p-4 w-full">
+    <h2 className="text-center text-5xl text-green-700 font-bold">
+      {selectedMonHoc.tenMon}
+    </h2>
+    <p>Số tín chỉ: {selectedMonHoc.soTinChi}</p>
+    <p>Giáo viên: {selectedMonHoc.giaoVien}</p>
+    <h3 className="text-xl text-green-500 font-bold">Tài liệu tham khảo:</h3>
+    <ul>
+      {selectedMonHoc.taiLieuThamKhao.map((taiLieu) => (
+        <li key={taiLieu.ten} className="flex">
+          <p className="mx-3">{taiLieu.ten}:</p>
+          <a href={taiLieu.link} className="text-cyan-600 underline">
+            {taiLieu.link}
+          </a>
+        </li>
+      ))}
+    </ul>
+    {selectedMonHoc.deMau && Array.isArray(selectedMonHoc.deMau) && (
+      <>
+        <h3 className="text-xl text-red-500 font-bold">Đề thi/Kiểm tra mẫu:</h3>
+        <ul>
+          {selectedMonHoc.deMau.map((taiLieu) => (
+            <li key={taiLieu.ten} className="flex">
+              <p className="mx-3">{taiLieu.ten}:</p>
+              <a href={taiLieu.link} className="text-cyan-600 underline">
+                {taiLieu.link}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+    {selectedMonHoc.baiTap && Array.isArray(selectedMonHoc.baiTap) && (
+      <>
+        <h3 className="text-xl text-yellow-600 font-bold">Bài tập:</h3>
+        <ul>
+          {selectedMonHoc.baiTap.map((baiTap) => (
+            <li key={baiTap.ten} className="flex">
+              <p className="mx-3">{baiTap.ten}:</p>
+              <a href={baiTap.link} className="text-cyan-600 underline">
+                {baiTap.link}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+  </div>
+)}
     </div>
   );
 }

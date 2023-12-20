@@ -1,0 +1,151 @@
+[{
+  "_id": {
+    "$oid": "657ee2e4803dac7390867cfc"
+  },
+  "hocKy": "Học kỳ 1",
+  "namHoc": "2023 - 2024",
+  "monHoc": [
+    {
+      "tenMon": "Lý thuyết đồ thị",
+      "soTinChi": 3,
+      "giaoVien": "Ths. Bùi Công Danh",
+      "taiLieuThamKhao": [
+        {
+          "ten": "Chuong1_1-DaiCuong-CacLoaiDoThi",
+          "link": "https://mega.nz/file/mA1zmR7Z#f5rN-BMbHK2URQ0dqH10DxsWGaG1_q5e4CGOEjq65vM"
+        },
+        {
+          "ten": "Chuong1_2-CanhKe_DinhKe_Bac-CacDangDacBiet",
+          "link": "https://mega.nz/file/2R8nmLTC#v07KENkVBKPIlMkFbjDmxsD_nDehWLzRLVN7rRGJ1qQ"
+        },
+        {
+          "ten": "Chuong1_3-DoThiCon-DoThiBoPhan_DangCau",
+          "link": "https://mega.nz/file/WZchzRiB#g3J7XjnTFv8adbJdzHgT8QoRN1dZiYeJswZ0JJKSqoc"
+        },
+        {
+          "ten": "Chuong1_4-DuongDi-ChuTrinh-LienThong-DuyetDoThi",
+          "link": "https://mega.nz/file/TdMU3SSS#F80MxtcodMx8w5bAYzRwwcuDBxqa1Rqs-PdYA0QQSqQ"
+        },
+        {
+          "ten": "Chuong1_5-BieuDienDoThi.",
+          "link": "https://mega.nz/file/DBt2DRSY#qFd_-AYvIql_-lNi0GmJk1HOvO_6Exdu1h_CW8kuH1c"
+        },
+        {
+          "ten": "Chuong1_6-DoThiPhang",
+          "link": "https://mega.nz/file/vdk3TQIL#BKzTReToz5V2FgP3Eq0QHxi6w3DSRA9FYBftPrnJUy8"
+        },
+        {
+          "ten": "Chuong2-DothiEuler-Hamilton",
+          "link": "https://mega.nz/file/SF8X2AbJ#0XDsK3msx6supg37DmTYEZelizpApwNl9nmiNxUgQLA"
+        },
+        {
+          "ten": "Chuong3_1-DoThiDangCay",
+          "link": "https://mega.nz/file/aAV2VLDR#HDUt2HA6DAgN-peysKEjDqtMdNLrhpQF242_HdWPWjs"
+        },
+        {
+          "ten": "Chuong3_2-CayKhung",
+          "link": "https://mega.nz/file/fYUiTRxD#ukkQmmKcNFE9i5Zk2yf_Yq6jM80NEZGndRrd-pyRP0c"
+        },
+        {
+          "ten": "Chuong4-DuongDiNganNhat",
+          "link": "https://mega.nz/file/ycND2LiK#DVOSt9XQsld2Ip05nBM3LSTDtX5trttzAERwg2zqr1c"
+        },
+        {
+          "ten": "Chuong5-Luong_trong_mang",
+          "link": "https://mega.nz/file/LAExVRAL#lL7jyCUKe_mFSaok1Y7h4RQ4GdUJCL6sH_ZPGr7JUtM"
+        },
+        {
+          "ten": "VDLuongCucDai-GanNhan",
+          "link": "https://mega.nz/file/3NdFUJTI#WOF55QXXahpTpp0-o0QANonTIGqJjc3zatVfGwJCUG8"
+        }
+      ],
+      "deMau": [
+        {
+          "ten": "BTMau_DuyetDoThi",
+          "link": "https://mega.nz/file/HdFCxKSI#aMpOrpVJKGwAuXpiu5Uep1EwvofWWnAiDUU6pfjNrM4"
+        },
+        {
+          "ten": "DangDeThiCK",
+          "link": "https://mega.nz/file/TIsyCJiD#BnwBCn4zEaBZJd-R8jWzBlCfJ6rQzuQS87UH9dVzBAE"
+        },
+        {
+          "ten": "Dap an De thi GK LTDT DHKHMT16A",
+          "link": "https://mega.nz/file/OY9W0K4B#USmbXGzYM77CWFa4CwgXp0S5a0Trhmt3eqG__PDcc1g"
+        },
+        {
+          "ten": "Dap an De thi GK LTDT DHKTPM16FTT",
+          "link": "https://mega.nz/file/CRFHwSoT#bXUY_AuHHAdXpEpMjpR6GN5j8naakju3Jzm8U6HfYo8"
+        },
+        {
+          "ten": "DapAn_DE1_TK2",
+          "link": "https://mega.nz/file/LMsSiSBD#WuWcKsew6Ry0V8UUcsWyxcZ8Ho6fxRycK5BRcD7PioQ"
+        },
+        {
+          "ten": "DapAn_DE2_TK2",
+          "link": "https://mega.nz/file/2M0iDCJC#ZT5-VPGfkPXJprdnbXIxmVPflPOGEuiMSCdagORqBz4"
+        },
+        {
+          "ten": "DapAn_DE3_TK2",
+          "link": "https://mega.nz/file/PNND0AJC#tpGr91b-MuR8KyorBdHIokLWvMcJW7d7TsSZTgzP4xc"
+        },
+        {
+          "ten": "DapAn_DE4_TK2",
+          "link": "https://mega.nz/file/LEkhxIzJ#0TxVCT44UgT2pRHnl6juGAUUTQHVqGwVLJPt3_Q3VOg"
+        },
+        {
+          "ten": "De thi GK LTDT DHKHMT16A",
+          "link": "https://mega.nz/file/jV1CCDjT#PEGJ0n3V3eK09IOJjeQWmGBrAkJyQl3q9ZSWIL_Picg"
+        },
+        {
+          "ten": "De thi GK LTDT DHKTPM16FTT",
+          "link": "https://mega.nz/file/XB1R3TgZ#7hwIx6EbNYT6Ia8figxzRRW4BG7z3LKqUjc6Ok1EynU"
+        }
+      ]
+    },
+    {
+      "tenMon": "Hệ quản trị cơ sở dữ liệu NoSQL MongoDB",
+      "soTinChi": "3",
+      "giaoVien": "TS. Nguyễn Thị Hạnh",
+      "taiLieuThamKhao": [
+        {
+          "ten": "00_chapter_overview_subject.pdf",
+          "link": "https://mega.nz/file/6BUBAIjI#dcBQvw3kUFCg4Q2h0tnh79r2xjZu2D_UUalACj5BnCo"
+        },
+        {
+          "ten": "01_chapter_introducing-data-modeling.pdf",
+          "link": "https://mega.nz/file/qYUlXYKb#hnBBY7JBpwnpF3uM8nEiK4bSdxSJxn67vIObdsBVABY"
+        },
+        {
+          "ten": "02_chapter_workloads_datamodeling_mongodb.pdf",
+          "link": "https://mega.nz/file/zcFTlILR#aXoyYvykkfRIsA3WJ__lvnQaXueG-lfz9f7LFZBktfE"
+        },
+        {
+          "ten": "03_chapter_relationships_datamodeling_mongodb.pdf",
+          "link": "https://mega.nz/file/HEkXELpJ#7gnCyt0zwsW9UgAm168kFcXGtNXKGgtydwHGs6YYpM4"
+        },
+        {
+          "ten": "04_chapter_pattern_in_mongodb1.pdf",
+          "link": "https://mega.nz/file/WU0kFIIA#R-Q0Lj59fJ7RD6n2uduTeTbMfmt5nUcCumBb-1jhjdE"
+        },
+        {
+          "ten": "04_chapter_pattern_in_mongodb2.pdf",
+          "link": "https://mega.nz/file/2QkwWKDD#FFhiFTGgae6FKEDKht-Jd1Jqtum5aaZQ0t4_AtGzfnI"
+        },
+        {
+          "ten": "04_chapter_pattern_in_mongodb3.pdf",
+          "link": "https://mega.nz/file/yJ10BT4Z#oXv-zxdm_YvA5BTrgW7rtWn3GfdZ7CVCM1sVS5h94Jw"
+        }
+      ],
+      "baiTap": [
+        {
+          "ten": "M320-workload-IOT.xlsx",
+          "link": "https://mega.nz/file/mclkyZAT#xsXVyws8rMFVhW5Fiaz3gtNKFeWNE9PQ1EGpiXSRgBE"
+        },
+        {
+          "ten": "BT Chương 4",
+          "link": "https://mega.nz/file/HRd2EQoZ#k1lPYp5yJwP7pKnExpTtZqYY7UTAuE8tlLk2LO2G9KI"
+        }
+      ]
+    }
+  ]
+}]
