@@ -1,3 +1,5 @@
+import { faCode } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
 
 export default function Menu() {
@@ -23,14 +25,14 @@ export default function Menu() {
   };
 
   useEffect(() => {
-    fetch("/public/data/blog-data.dai-hoc.json")
+    fetch("/data/blog-data.dai-hoc.json")
       .then((response) => response.json())
       .then((data) => setHocKyData(data));
   }, []);
 
   return (
     <div className="flex">
-      <div className="w-64 h-[1000px] my-3 mb-3 bg-blue-900 font-bold text-orange-50">
+      <div className="w-1/6 h-[1000px] my-3 mb-3 bg-blue-900 font-bold text-orange-50">
         <ul className="space-y-2">
           <li className="text-left   mx-2">
             <div className="flex justify-between ">
@@ -72,55 +74,94 @@ export default function Menu() {
         </ul>
       </div>
       {selectedMonHoc && (
-  <div className="p-4 w-full">
-    <h2 className="text-center text-5xl text-green-700 font-bold">
-      {selectedMonHoc.tenMon}
-    </h2>
-    <p>Số tín chỉ: {selectedMonHoc.soTinChi}</p>
-    <p>Giáo viên: {selectedMonHoc.giaoVien}</p>
-    <h3 className="text-xl text-green-500 font-bold">Tài liệu tham khảo:</h3>
-    <ul>
-      {selectedMonHoc.taiLieuThamKhao.map((taiLieu) => (
-        <li key={taiLieu.ten} className="flex">
-          <p className="mx-3">{taiLieu.ten}:</p>
-          <a href={taiLieu.link} className="text-cyan-600 underline">
-            {taiLieu.link}
-          </a>
-        </li>
-      ))}
-    </ul>
-    {selectedMonHoc.deMau && Array.isArray(selectedMonHoc.deMau) && (
-      <>
-        <h3 className="text-xl text-red-500 font-bold">Đề thi/Kiểm tra mẫu:</h3>
-        <ul>
-          {selectedMonHoc.deMau.map((taiLieu) => (
-            <li key={taiLieu.ten} className="flex">
-              <p className="mx-3">{taiLieu.ten}:</p>
-              <a href={taiLieu.link} className="text-cyan-600 underline">
-                {taiLieu.link}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </>
-    )}
-    {selectedMonHoc.baiTap && Array.isArray(selectedMonHoc.baiTap) && (
-      <>
-        <h3 className="text-xl text-yellow-600 font-bold">Bài tập:</h3>
-        <ul>
-          {selectedMonHoc.baiTap.map((baiTap) => (
-            <li key={baiTap.ten} className="flex">
-              <p className="mx-3">{baiTap.ten}:</p>
-              <a href={baiTap.link} className="text-cyan-600 underline">
-                {baiTap.link}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </>
-    )}
-  </div>
-)}
+        <div className="p-4 w-5/6">
+          <h2 className="text-center text-5xl text-green-700 font-bold">
+            {selectedMonHoc.tenMon}
+          </h2>
+          <p>Số tín chỉ: {selectedMonHoc.soTinChi}</p>
+          <p>Giáo viên: {selectedMonHoc.giaoVien}</p>
+          <h3 className="text-xl text-green-500 font-bold">
+            Tài liệu tham khảo:
+          </h3>
+          <ul>
+            {selectedMonHoc.taiLieuThamKhao.map((taiLieu) => (
+              <li key={taiLieu.ten} className="flex">
+                <p className="mx-3">{taiLieu.ten}:</p>
+                <a href={taiLieu.link} className="text-cyan-600 underline">
+                  {taiLieu.link}
+                </a>
+              </li>
+            ))}
+          </ul>
+          {selectedMonHoc.deMau && Array.isArray(selectedMonHoc.deMau) && (
+            <>
+              <h3 className="text-xl text-red-500 font-bold">
+                Đề thi/Kiểm tra mẫu:
+              </h3>
+              <ul>
+                {selectedMonHoc.deMau.map((taiLieu) => (
+                  <li key={taiLieu.ten} className="flex">
+                    <p className="mx-3">{taiLieu.ten}:</p>
+                    <a href={taiLieu.link} className="text-cyan-600 underline">
+                      {taiLieu.link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {selectedMonHoc.baiTap && Array.isArray(selectedMonHoc.baiTap) && (
+            <>
+              <h3 className="text-xl text-yellow-600 font-bold">Bài tập:</h3>
+              <ul>
+                {selectedMonHoc.baiTap.map((baiTap) => (
+                  <li key={baiTap.ten} className="flex">
+                    <p className="mx-3">{baiTap.ten}:</p>
+                    <a href={baiTap.link} className="text-cyan-600 underline">
+                      {baiTap.link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {selectedMonHoc.doAn && (
+            <>
+              <h3 className="text-xl text-blue-800 font-bold">Đồ án:</h3>
+              <p>{selectedMonHoc.doAn.ten}</p>
+              <p>
+                File trình chiếu:{" "}
+                <a
+                  href={selectedMonHoc.doAn.fileTrinhChieu}
+                  className="text-cyan-600 underline"
+                >
+                  {selectedMonHoc.doAn.fileTrinhChieu}
+                </a>
+              </p>
+              <h4>Tài liệu:</h4>
+              <ul>
+                {selectedMonHoc.doAn.taiLieu.map((taiLieu) => (
+                  <li key={taiLieu.ten} className="flex">
+                    <p className="mx-3">{taiLieu.ten}:</p>
+                    <a href={taiLieu.link} className="text-cyan-600 underline">
+                      {taiLieu.link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <p>
+               <FontAwesomeIcon icon={faCode}/> Source code:{" "}
+                <a
+                  href={selectedMonHoc.doAn["Source code"]}
+                  className="text-cyan-600 underline"
+                >
+                  {selectedMonHoc.doAn["Source code"]}
+                </a>
+              </p>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
