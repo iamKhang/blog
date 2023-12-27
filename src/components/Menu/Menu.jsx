@@ -1,13 +1,12 @@
 import { faCode } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
+import hocKyData from "./data/blog-data.dai-hoc.json";
 
 export default function Menu() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedHocKy, setExpandedHocKy] = useState(null);
   const [selectedMonHoc, setSelectedMonHoc] = useState(null);
-  const [hocKyData, setHocKyData] = useState([]);
-
   const handleToggle = () => {
     setIsExpanded(!isExpanded);
   };
@@ -24,11 +23,6 @@ export default function Menu() {
     setSelectedMonHoc(monHoc);
   };
 
-  useEffect(() => {
-    fetch("/data/blog-data.dai-hoc.json")
-      .then((response) => response.json())
-      .then((data) => setHocKyData(data));
-  }, []);
 
   return (
     <div className="flex">
@@ -150,7 +144,7 @@ export default function Menu() {
                 ))}
               </ul>
               <p>
-               <FontAwesomeIcon icon={faCode}/> Source code:{" "}
+                <FontAwesomeIcon icon={faCode} /> Source code:{" "}
                 <a
                   href={selectedMonHoc.doAn["Source code"]}
                   className="text-cyan-600 underline"

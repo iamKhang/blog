@@ -2,6 +2,7 @@ import React from "react";
 import "./header.css";
 import Tippy from "@tippyjs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import qr_momo  from "./imgs/qr.jpg";
 import {
   faCoins,
   faDonate,
@@ -15,13 +16,13 @@ import {
   faNewspaper, // Add the missing import
 } from "@fortawesome/free-solid-svg-icons";
 
+
 const Header = () => {
   return (
     <header className="bg-blue-900 flex justify-between items-center px-2 p-4">
       <a className="text-white font-extrabold ml-2 flex items-end">
         <p>iam</p>
         <p className="text-amber-400 text-xl">HoangKhang</p>
-        {/* <p className="text-green-400 text-xs">.github.io</p> */}
       </a>
       <nav className="">
         <ul className="flex justify-end space-x-14 px-8">
@@ -67,14 +68,14 @@ const Header = () => {
                     </a>
                   </div>
                   <div className="flex mx-4">
-                    <label className="text-white font-semibold mr-1 flex">
+                    {/* <label className="text-white font-semibold mr-1 flex">
                       <img
                         src="/public/img/icon-facebook.svg"
                         className="text-white"
                         alt=""
                       />{" "}
                       Facebook:
-                    </label>
+                    </label> */}
                     <a href="" className="font-semibold text-white">
                       Lê Hoàng Khang
                     </a>
@@ -94,7 +95,7 @@ const Header = () => {
               arrow={true}
               content={
                 <img
-                  src="/public/img/qr.jpg"
+                  src={qr_momo}
                   alt="Logo"
                   style={{ width: "350px" }}
                 />
