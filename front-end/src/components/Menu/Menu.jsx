@@ -1,161 +1,109 @@
 import { faCode } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
-import hocKyData from "./data/blog-data.dai-hoc.json";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
 export default function Menu() {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [expandedHocKy, setExpandedHocKy] = useState(null);
-  const [selectedMonHoc, setSelectedMonHoc] = useState(null);
-  const handleToggle = () => {
-    setIsExpanded(!isExpanded);
+  const [courses, setCourses] = useState([]);
+  const [expandedYears, setExpandedYears] = useState({});
+  const [expandedSemesters, setExpandedSemesters] = useState({});
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [expandedUniversity, setExpandedUniversity] = useState(false);
+
+  const toggleUniversity = () => {
+    setExpandedUniversity(!expandedUniversity);
   };
 
-  const handleHocKyToggle = (index) => {
-    if (expandedHocKy === index) {
-      setExpandedHocKy(null);
-    } else {
-      setExpandedHocKy(index);
+  useEffect(() => {
+    fetch('http://localhost:3000/courses/show')
+      .then(response => response.json())
+      .then(data => setCourses(data.courses)) // Truy cập vào mảng "courses" trong dữ liệu trả về
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  const toggleYear = (year) => {
+    setExpandedYears({ ...expandedYears, [year]: !expandedYears[year] });
+  };
+
+  const toggleSemester = (year, semester) => {
+    const key = `${year}-${semester}`;
+    setExpandedSemesters({ ...expandedSemesters, [key]: !expandedSemesters[key] });
+  };
+
+  // Tạo một đối tượng để lưu trữ các khóa học theo năm học và học kỳ
+  const coursesByYearAndSemester = {};
+
+  courses.forEach(course => {
+    const { academicYear, semester, subjectName } = course;
+
+    // Nếu chưa có năm học này trong đối tượng, thêm nó
+    if (!coursesByYearAndSemester[academicYear]) {
+      coursesByYearAndSemester[academicYear] = {};
     }
-  };
 
-  const handleMonHocClick = (monHoc) => {
-    setSelectedMonHoc(monHoc);
-  };
+    // Nếu chưa có học kỳ này trong năm học, thêm nó
+    if (!coursesByYearAndSemester[academicYear][semester]) {
+      coursesByYearAndSemester[academicYear][semester] = [];
+    }
 
+    // Thêm khóa học vào danh sách
+    coursesByYearAndSemester[academicYear][semester].push(course);
+  });
 
+  // Hiển thị ra màn hình courses
   return (
-    <div className="flex">
-      <div className="w-1/6 h-[1000px] my-3 mb-3 bg-blue-900 font-bold text-orange-50">
-        <ul className="space-y-2">
-          <li className="text-left   mx-2">
-            <div className="flex justify-between ">
-              Đại Học
-              <button onClick={handleToggle}>{isExpanded ? "▲" : "▼"}</button>
-            </div>
-            {isExpanded &&
-              hocKyData.map((hocKy, index) => (
-                <li className="text-left">
-                  <div className="flex justify-between mx-2 items-center">
-                    {`${hocKy.hocKy} (${hocKy.namHoc})`}
-                    <button onClick={() => handleHocKyToggle(index)}>
-                      {expandedHocKy === index ? "▲" : "▼"}
-                    </button>
-                  </div>
-                  {expandedHocKy === index &&
-                    hocKy.monHoc.map((monHoc) => (
-                      <li
-                        className="pl-4 hover:bg-orange-50 hover:text-orange-500"
-                        onClick={() => handleMonHocClick(monHoc)}
-                      >
-                        {monHoc.tenMon.length > 20
-                          ? `${monHoc.tenMon.substring(0, 23)}...`
-                          : monHoc.tenMon}
-                      </li>
+    <div className="flex my-1">
+      <div className="bg-blue-900 w-56 p-3">
+        <h2 className="cursor-pointer font-semibold text-white flex justify-between items-center" onClick={toggleUniversity}>
+          Đại học
+          {expandedUniversity ? (
+            <FontAwesomeIcon icon={faChevronUp} />
+          ) : (
+            <FontAwesomeIcon icon={faChevronDown} />
+          )}
+        </h2>
+        {expandedUniversity && Object.entries(coursesByYearAndSemester).map(([year, semesters]) => (
+          <div key={year}>
+            <h3 className="cursor-pointer flex justify-between ml-2 font-semibold text-white" onClick={() => toggleYear(year)}>
+              <p>Năm học: {year}</p>
+              <p>
+                {expandedYears[year] ? (
+                  <FontAwesomeIcon icon={faChevronUp} />
+                ) : (
+                  <FontAwesomeIcon icon={faChevronDown} />
+                )}
+
+              </p>
+            </h3>
+            {expandedYears[year] && Object.entries(semesters).map(([semester, subjects]) => (
+              <div key={semester}>
+                <h4 className="cursor-pointer ml-4 font-semibold text-white flex justify-between" onClick={() => toggleSemester(year, semester)}>{semester}
+                  {expandedSemesters[`${year}-${semester}`] ? (
+                    <FontAwesomeIcon icon={faChevronUp} />
+                  ) : (
+                    <FontAwesomeIcon icon={faChevronDown} />
+                  )}</h4>
+                {expandedSemesters[`${year}-${semester}`] && (
+                  <ul className="ml-6 text-white font-semibold">
+                    {subjects.map((course, index) => (
+                      <li className="cursor-pointer truncate" key={index} onClick={() => setSelectedCourse(course)}>{course.subjectName}</li>
                     ))}
-                </li>
-              ))}
-          </li>
-          <li className="text-left hover:text-amber-500 hover:bg-white mx-2">
-            Tiếng Anh
-          </li>
-          <li className="text-left hover:text-amber-500 hover:bg-white mx-2">
-            Kinh tế
-          </li>
-          <li className="text-left hover:text-amber-500 hover:bg-white mx-2">
-            Khác
-          </li>
-        </ul>
-      </div>
-      {selectedMonHoc && (
-        <div className="p-4 w-5/6">
-          <h2 className="text-center text-5xl text-green-700 font-bold">
-            {selectedMonHoc.tenMon}
-          </h2>
-          <p>Số tín chỉ: {selectedMonHoc.soTinChi}</p>
-          <p>Giáo viên: {selectedMonHoc.giaoVien}</p>
-          <h3 className="text-xl text-green-500 font-bold">
-            Tài liệu tham khảo:
-          </h3>
-          <ul>
-            {selectedMonHoc.taiLieuThamKhao.map((taiLieu) => (
-              <li key={taiLieu.ten} className="flex">
-                <p className="mx-3">{taiLieu.ten}:</p>
-                <a href={taiLieu.link} className="text-cyan-600 underline">
-                  {taiLieu.link}
-                </a>
-              </li>
+                  </ul>
+                )}
+              </div>
             ))}
-          </ul>
-          {selectedMonHoc.deMau && Array.isArray(selectedMonHoc.deMau) && (
-            <>
-              <h3 className="text-xl text-red-500 font-bold">
-                Đề thi/Kiểm tra mẫu:
-              </h3>
-              <ul>
-                {selectedMonHoc.deMau.map((taiLieu) => (
-                  <li key={taiLieu.ten} className="flex">
-                    <p className="mx-3">{taiLieu.ten}:</p>
-                    <a href={taiLieu.link} className="text-cyan-600 underline">
-                      {taiLieu.link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {selectedMonHoc.baiTap && Array.isArray(selectedMonHoc.baiTap) && (
-            <>
-              <h3 className="text-xl text-yellow-600 font-bold">Bài tập:</h3>
-              <ul>
-                {selectedMonHoc.baiTap.map((baiTap) => (
-                  <li key={baiTap.ten} className="flex">
-                    <p className="mx-3">{baiTap.ten}:</p>
-                    <a href={baiTap.link} className="text-cyan-600 underline">
-                      {baiTap.link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {selectedMonHoc.doAn && (
-            <>
-              <h3 className="text-xl text-blue-800 font-bold">Đồ án:</h3>
-              <p>{selectedMonHoc.doAn.ten}</p>
-              <p>
-                File trình chiếu:{" "}
-                <a
-                  href={selectedMonHoc.doAn.fileTrinhChieu}
-                  className="text-cyan-600 underline"
-                >
-                  {selectedMonHoc.doAn.fileTrinhChieu}
-                </a>
-              </p>
-              <h4>Tài liệu:</h4>
-              <ul>
-                {selectedMonHoc.doAn.taiLieu.map((taiLieu) => (
-                  <li key={taiLieu.ten} className="flex">
-                    <p className="mx-3">{taiLieu.ten}:</p>
-                    <a href={taiLieu.link} className="text-cyan-600 underline">
-                      {taiLieu.link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-              <p>
-                <FontAwesomeIcon icon={faCode} /> Source code:{" "}
-                <a
-                  href={selectedMonHoc.doAn["Source code"]}
-                  className="text-cyan-600 underline"
-                >
-                  {selectedMonHoc.doAn["Source code"]}
-                </a>
-              </p>
-            </>
-          )}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
+
+      <div className="">
+        {selectedCourse && (
+          <div>
+            <h2>{selectedCourse.subjectName}</h2>
+            {/* Thêm bất kỳ thông tin khác bạn muốn hiển thị ở đây */}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
