@@ -10,6 +10,9 @@ export default {
         float: 'float 6s ease-in-out infinite',
         scroll: 'scroll 30s linear infinite',
       },
+      screens: {
+        'xs': '414px', // Add this line
+      },
       keyframes: {
         float: {
           '0%': { transform: 'translateY(0px)' },

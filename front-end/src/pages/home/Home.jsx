@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+// import React, { useState } from "react";
 import Header from "../../components/Header/header";
 import Footer from "../../components/Footer/footer";
 import Marquee from "react-fast-marquee";
@@ -22,6 +22,7 @@ import tailwindLogo from "./imgs/tailwindcss-icon-svgrepo-com.svg";
 import phpLogo from "./imgs/php-svgrepo-com.svg";
 import cLogo from "./imgs/c.svg";
 import cppLogo from "./imgs/c--4.svg";
+import postgreLogo from "./imgs/postgresql-icon.svg";
 
 Modal.setAppElement("#root");
 
@@ -42,6 +43,7 @@ const images = [
   phpLogo,
   cLogo,
   cppLogo,
+  postgreLogo,
 ];
 
 export default function Home() {
@@ -49,7 +51,7 @@ export default function Home() {
     <div>
       <Header />
       <div className="h-[2000px] bg-slate-200">
-        <div className="px-36 flex justify-around pt-7">
+        <div className="md:px-36 sm:px-2 flex justify-around pt-7">
           <div className="w-1/2">
             <img
               className="animate-float h-full"
@@ -60,32 +62,32 @@ export default function Home() {
           <div className="bg-red-700 w-1/2"></div>
         </div>
         <Marquee className="flex">
-          <div className="h-16 flex space-x-7 justify-between mt-10 overflow-hidden">
+          <div className="h-16 flex space-x-7 justify-between mt-10 overflow-hidden sm:space-x-4 md:space-x-6 lg:space-x-7">
             {images.map((image) => (
-              <div className="text-6xl" key={image}>
-                <img src={image} alt="" />
+              <div className="text-6xl sm:text-4xl md:text-5xl lg:text-6xl" key={image}>
+                <img src={image} alt="" className="xs:w-9 xs:h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16" />
               </div>
             ))}
           </div>
-          <div className="h-16 flex space-x-7 justify-between mt-10 overflow-hidden mx-7">
+          <div className="h-16 flex space-x-7 justify-between mt-10 overflow-hidden mx-7 sm:space-x-4 md:space-x-6 lg:space-x-7">
             {images.map((image) => (
-              <div className="text-6xl" key={image}>
-                <img src={image} alt="" />
+              <div className="text-6xl sm:text-4xl md:text-5xl lg:text-6xl" key={image}>
+                <img src={image} alt="" className="xs:w-9 xs:h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16" />
               </div>
             ))}
           </div>
         </Marquee>
-
         {/* Tìm kiếm */}
 
-        <div className="flex justify-center mt-10">
-          <div className="mt-5 flex w-1/4">
+        <div className="flex justify-center mt-10 sm:mt-6 xs:mt-4">
+          <div className="mt-5 flex md:w-1/4 sm:w-1/2 xs:w-3/4">
             <input
               className="w-full h-10 px-3 text-base placeholder-gray-600 border rounded-lg focus:shadow-outline"
               type="search"
               placeholder="Search..."
+
             />
-            <button className="ml-2 bg-blue-900 text-white rounded-lg px-4 py-2 hover:bg-white hover:text-orange-400">
+            <button className="w-15 ml-2 bg-blue-900 text-white rounded-lg px-4 py-2 hover:bg-white hover:text-orange-400">
               Search
             </button>
           </div>

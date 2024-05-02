@@ -1,0 +1,7 @@
+/* .navItems{
+   @apply font-extrabold
+} */
+
+.tippy-box[data-placement^='right'] > .tippy-arrow::before {
+   border-right-color: #333;
+ }
