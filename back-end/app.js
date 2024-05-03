@@ -2,11 +2,12 @@
 
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
 const port = 3000;
-const route = require('./routers/index.js');
+const route = require('./src/routers/index');
+const connectDB = require('./src/app/config/db/');
 
-const connectDB = require('./app/config/db/index.js');
-
+app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

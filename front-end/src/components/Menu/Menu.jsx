@@ -1,13 +1,13 @@
 import { faCode } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
-export default function Menu() {
+export default function Menu({ setSelectedCourse }) {
   const [courses, setCourses] = useState([]);
   const [expandedYears, setExpandedYears] = useState({});
   const [expandedSemesters, setExpandedSemesters] = useState({});
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  // const [localSelectedCourse, setLocalSelectedCourse] = useState(null);
   const [expandedUniversity, setExpandedUniversity] = useState(false);
 
   const toggleUniversity = () => {
@@ -15,7 +15,7 @@ export default function Menu() {
   };
 
   useEffect(() => {
-    fetch('http://localhost:3000/courses/show')
+    fetch('http://localhost:3000/api/courses/getList')
       .then(response => response.json())
       .then(data => setCourses(data.courses)) // Truy cập vào mảng "courses" trong dữ liệu trả về
       .catch(error => console.error('Error:', error));
@@ -34,7 +34,7 @@ export default function Menu() {
   const coursesByYearAndSemester = {};
 
   courses.forEach(course => {
-    const { academicYear, semester, subjectName } = course;
+    const { academicYear, semester } = course;
 
     // Nếu chưa có năm học này trong đối tượng, thêm nó
     if (!coursesByYearAndSemester[academicYear]) {
@@ -94,15 +94,6 @@ export default function Menu() {
             ))}
           </div>
         ))}
-      </div>
-
-      <div className="">
-        {selectedCourse && (
-          <div>
-            <h2>{selectedCourse.subjectName}</h2>
-            {/* Thêm bất kỳ thông tin khác bạn muốn hiển thị ở đây */}
-          </div>
-        )}
       </div>
     </div>
   );

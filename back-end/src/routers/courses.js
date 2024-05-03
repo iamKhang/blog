@@ -2,9 +2,12 @@
 const express = require('express')
 const router = express.Router()
 
+// const courseController = require('../../app/controllers/CourseController')
 const courseController = require('../app/controllers/CourseController')
 
-router.get('/show', courseController.show)
+router.get('/getList', courseController.getList)
+// Thêm 1 khóa học mới
+router.post('/add', courseController.addCourse)
 
 
 

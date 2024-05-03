@@ -1,6 +1,4 @@
 // import React, { useState } from "react";
-import Header from "../../components/Header/header";
-import Footer from "../../components/Footer/footer";
 import Marquee from "react-fast-marquee";
 import Modal from "react-modal";
 
@@ -49,7 +47,6 @@ const images = [
 export default function Home() {
   return (
     <div>
-      <Header />
       <div className="h-[2000px] bg-slate-200">
         <div className="md:px-36 sm:px-2 flex justify-around pt-7">
           <div className="w-1/2">
@@ -93,8 +90,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

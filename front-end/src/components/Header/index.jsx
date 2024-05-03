@@ -7,15 +7,13 @@ import qr_momo from "./imgs/qr.jpg";
 import {
   faBars,
   faCoins,
-  faDonate,
   faEnvelope,
   faMobile,
-  faToilet,
-  faUser,
   faAddressBook,
   faHouse,
   faFileCode,
   faNewspaper, // Add the missing import
+  faUserTie
 } from "@fortawesome/free-solid-svg-icons";
 
 
@@ -43,7 +41,7 @@ const Header = () => {
             </a>
           </li>
           <li>
-            <a href="/blog" className="text-white hover:text-gray-300 navItems">
+            <a href="/post" className="text-white hover:text-gray-300 navItems">
               <FontAwesomeIcon icon={faNewspaper} /> Bài viết
             </a>
           </li>
@@ -101,6 +99,14 @@ const Header = () => {
               </p>
             </Tippy>
           </li>
+          <li>
+            <a
+              href="/admin"
+              className="text-white hover:text-gray-300 navItems"
+            >
+              <FontAwesomeIcon icon={faUserTie} /> Quản lý
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -128,7 +134,7 @@ const Header = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="/blog" className="text-white hover:text-gray-300 navItems">
+                  <a href="/post" className="text-white hover:text-gray-300 navItems">
                     <FontAwesomeIcon icon={faNewspaper} /> Bài viết
                   </a>
                 </li>
