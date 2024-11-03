@@ -28,10 +28,10 @@ export function Header() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center">
           <Link href="/" className="flex items-baseline">
-            <span className="text-base text-orange-400 font-bold">iam</span>{" "}
+            <span className="text-lg text-[#EC8305] font-bold">iam</span>{" "}
             <span className="text-2xl text-white font-bold">HoangKhang</span>
           </Link>
-          <div className="animate-spin-slow text-4xl text-yellow-400 ml-2">
+          <div className="animate-spin-slow text-4xl text-[#EC8305] ml-2">
             <Sun size={30} fill="currentColor" />
           </div>
         </div>
@@ -49,19 +49,19 @@ export function Header() {
             </Button>
           ))}
 
-          <div className="ml-4 flex items-center space-x-1">
+          <div className="ml-4 flex items-center space-x-1 border-l-slate-200 border-l-2 pl-3">
             <Button
               variant="ghost"
               size="lg"
               asChild
-              className="text-white font-semibold hover:text-white hover:bg-blue-700"
+              className="text-white font-semibold hover:text-white hover:bg-[#EC8305]"
             >
               <Link href="/login">Login</Link>
             </Button>
             <Button
               size="lg"
               asChild
-              className="bg-blue-800 text-white font-semibold hover:bg-blue-900"
+              className="bg-[#EC8305] text-white font-semibold hover:bg-blue-900"
             >
               <Link href="/register">Register</Link>
             </Button>
