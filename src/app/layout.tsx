@@ -18,8 +18,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main className="min-h-screen bg-gray-100">
           <Header />
 
-          <section className="container mx-auto p-4">
-            <HeroSection /> {children}
+          <section className="container mx-auto">
+          {children}
           </section>
         </main>
       </body>

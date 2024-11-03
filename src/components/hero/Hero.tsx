@@ -6,25 +6,55 @@ import Image from "next/image";
 import Link from "next/link";
 import Marquee from "react-fast-marquee";
 import { ReactTyped, Typed } from "react-typed";
+import MarqueeCustom from "./MarqueeCustom";
 
-const icons = [
-  "/language-com/csharp-svgrepo-com.svg",
-  "/language-com/css-3-svgrepo-com.svg",
-  "/language-com/html-5-svgrepo-com.svg",
-  "/language-com/java-svgrepo-com.svg",
-  "/language-com/mariadb-icon-svgrepo-com.svg",
-  "/language-com/microsoft-sql-server-logo-svgrepo-com.svg",
-  "/language-com/mongodb-logo-svgrepo-com.svg",
-  "/language-com/mysql-svgrepo-com.svg",
-  "/language-com/nextjs-svgrepo-com.svg",
-  "/language-com/nodejs-icon-logo-svgrepo-com.svg",
-  "/language-com/pgsql-svgrepo-com.svg",
-  "/language-com/python-svgrepo-com.svg",
-  "/language-com/reactjs-svgrepo-com.svg",
-  "/language-com/spring-icon-svgrepo-com.svg",
-  "/language-com/tailwind-svgrepo-com.svg",
-  "/language-com/Neo4j.svg",
+const languageIcons = [
+  "/language/csharp.svg",
+  "/language/css-3.svg",
+  "/language/cucumber.svg",
+  "/language/hibernate.svg",
+  "/language/html-5.svg",
+  "/language/java.svg",
+  "/language/javascript.svg",
+  "/language/mariadb.svg",
+  "/language/microsoft-sql-server.svg",
+  "/language/mongodb.svg",
+  "/language/mysql.svg",
+  "/language/neo4j.svg",
+  "/language/nextjs.svg",
+  "/language/nodejs.svg",
+  "/language/pgsql.svg",
+  "/language/python.svg",
+  "/language/reactjs.svg",
+  "/language/spring.svg",
+  "/language/tailwind.svg",
+  "/language/typescript.svg",
 ];
+
+const toolIcons = [
+  '/tools/android-studio.svg',
+  '/tools/canva.svg',
+  '/tools/docker.svg',
+  '/tools/eclipse.svg',
+  '/tools/figma.svg',
+  '/tools/github.svg',
+  '/tools/intellij-idea.svg',
+  '/tools/microsoft.svg',
+  '/tools/notion.svg',
+  '/tools/photoshop.svg',
+  '/tools/postman.svg',
+  '/tools/supabase.svg',
+  '/tools/trello.svg',
+  '/tools/gradle.svg',
+  '/tools/maven.svg',
+  '/tools/ubuntu.svg',
+  '/tools/vscode.svg',
+  '/tools/selenium.svg',
+  '/tools/jira.svg',
+];
+
+
+
 
 export function HeroSection() {
   const [imagePosition, setImagePosition] = useState(0);
@@ -59,9 +89,8 @@ export function HeroSection() {
             </h1>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
               <ReactTyped
-                startWhenVisible
                 strings={["Lê Hoàng Khang"]}
-                typeSpeed={300}
+                typeSpeed={100}
                 backSpeed={60}
                 loop
                 cursorChar={"_"}
@@ -107,42 +136,18 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-      <div className="w-full bg-white/5 py-10 backdrop-blur-sm">
-        <Marquee gradient={false} speed={50} className="flex">
-          <div className="flex items-center gap-16 px-8">
-            {icons.map((icon, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-center w-[50px]"
-              >
-                <Image
-                  src={icon}
-                  alt={`Technology ${index + 1}`}
-                  width={60}
-                  height={60}
-                  className="object-contain hover:scale-110 transition-transform duration-200"
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-16 px-8 py-4">
-            {icons.map((icon, index) => (
-              <div
-                key={`repeat-${index}`}
-                className="flex items-center justify-center w-[50px]"
-              >
-                <Image
-                  src={icon}
-                  alt={`Technology ${index + 1}`}
-                  width={60}
-                  height={60}
-                  className="object-contain hover:scale-110 transition-transform duration-200"
-                />
-              </div>
-            ))}
-          </div>
-        </Marquee>
-      </div>
+      <MarqueeCustom
+        icons={
+         languageIcons
+        }
+        direction="left"
+      />
+      <MarqueeCustom
+        icons={
+         toolIcons
+        }
+        direction="right"
+      />
     </main>
   );
 }
