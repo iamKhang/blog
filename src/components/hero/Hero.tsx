@@ -32,29 +32,26 @@ const languageIcons = [
 ];
 
 const toolIcons = [
-  '/tools/android-studio.svg',
-  '/tools/canva.svg',
-  '/tools/docker.svg',
-  '/tools/eclipse.svg',
-  '/tools/figma.svg',
-  '/tools/github.svg',
-  '/tools/intellij-idea.svg',
-  '/tools/microsoft.svg',
-  '/tools/notion.svg',
-  '/tools/photoshop.svg',
-  '/tools/postman.svg',
-  '/tools/supabase.svg',
-  '/tools/trello.svg',
-  '/tools/gradle.svg',
-  '/tools/maven.svg',
-  '/tools/ubuntu.svg',
-  '/tools/vscode.svg',
-  '/tools/selenium.svg',
-  '/tools/jira.svg',
+  "/tools/android-studio.svg",
+  "/tools/canva.svg",
+  "/tools/docker.svg",
+  "/tools/eclipse.svg",
+  "/tools/figma.svg",
+  "/tools/github.svg",
+  "/tools/intellij-idea.svg",
+  "/tools/microsoft.svg",
+  "/tools/notion.svg",
+  "/tools/photoshop.svg",
+  "/tools/postman.svg",
+  "/tools/supabase.svg",
+  "/tools/trello.svg",
+  "/tools/gradle.svg",
+  "/tools/maven.svg",
+  "/tools/ubuntu.svg",
+  "/tools/vscode.svg",
+  "/tools/selenium.svg",
+  "/tools/jira.svg",
 ];
-
-
-
 
 export function HeroSection() {
   const [imagePosition, setImagePosition] = useState(0);
@@ -88,13 +85,7 @@ export function HeroSection() {
               Chào bạn, mình là
             </h1>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-              <ReactTyped
-                strings={["Lê Hoàng Khang"]}
-                typeSpeed={100}
-                backSpeed={60}
-                loop
-                cursorChar={"_"}
-              ></ReactTyped>
+              Lê Hoàng Khang
             </h1>
           </div>
           <div className="space-y-4">
@@ -136,18 +127,8 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-      <MarqueeCustom
-        icons={
-         languageIcons
-        }
-        direction="left"
-      />
-      <MarqueeCustom
-        icons={
-         toolIcons
-        }
-        direction="right"
-      />
+      <MarqueeCustom icons={languageIcons} direction="left" />
+      <MarqueeCustom icons={toolIcons} direction="right" />
     </main>
   );
 }
