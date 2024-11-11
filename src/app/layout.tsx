@@ -3,6 +3,7 @@ import { Header } from "@/components/header";
 import "./globals.css";
 import { ReactNode } from "react";
 import { HeroSection } from "@/components/hero/Hero";
+import { Footer } from "@/components/footer";
 export const metadata = {
   title: "My Blog",
   description: "A simple blog application using Next.js",
@@ -21,6 +22,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <section className="container mx-auto">
           {children}
           </section>
+
+          <Footer />
         </main>
       </body>
     </html>

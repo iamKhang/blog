@@ -64,3 +64,28 @@
     @apply bg-background text-foreground;
   }
 }
+/* Tùy chỉnh thanh cuộn */
+::-webkit-scrollbar {
+  width: 10px; /* Độ rộng của thanh cuộn */
+}
+
+::-webkit-scrollbar-track {
+  background: #e0e0e0; /* Màu nền của track thanh cuộn */
+  border-radius: 10px; /* Bo tròn góc */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #3498db; /* Màu của thanh kéo */
+  border-radius: 10px; /* Bo tròn góc thanh kéo */
+  border: 2px solid #e0e0e0; /* Viền quanh thanh kéo để tạo hiệu ứng nổi */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #2980b9; /* Màu khi hover */
+}
+
+/* Tùy chỉnh thanh cuộn cho Firefox */
+body {
+  scrollbar-color: #3498db #e0e0e0; /* Màu của thanh kéo và màu nền */
+  scrollbar-width: thin; /* Độ rộng thanh cuộn */
+}
