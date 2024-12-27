@@ -117,7 +117,7 @@ export function BlogSection() {
 
         <div className="text-center mt-10">
           <Button asChild size="lg" className="bg-[#EC8305] hover:bg-[#D97704]">
-            <Link href="/blog">
+            <Link href="/posts">
               View All Posts
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

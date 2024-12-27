@@ -65,7 +65,7 @@ export function HeroSection() {
               </Link>
             </Button>
             <Button variant="secondary">
-              About me
+              <Link href="/about-me">About me</Link>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
