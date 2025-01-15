@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // hoặc "mysql" tùy theo database bạn chọn
+  url      = env("DATABASE_URL")
+}
+
+// Model User để quản lý người dùng và xác thực
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(USER)
+  avatar        String?
+  bio           String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// Model Post cho blog
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  excerpt     String    @db.Text
+  coverImage  String?
+  published   Boolean   @default(false)
+  isPinned    Boolean   @default(false)
+  isHidden    Boolean   @default(false)
+  views       Int       @default(0)
+  likes       Int       @default(0)
+  authorId    String
+  categories  Category[]
+  tags        Tag[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Model Project cho showcase dự án
+model Project {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  description   String    @db.Text
+  thumbnail     String
+  technologies  String[]
+  category      String
+  status        ProjectStatus
+  githubUrl     String?
+  demoUrl       String?
+  docsUrl       String?
+  views         Int       @default(0)
+  likes         Int       @default(0)
+  isPinned      Boolean   @default(false)
+  isHidden      Boolean   @default(false)
+  authorId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum ProjectStatus {
+  COMPLETED
+  IN_PROGRESS
+  PLANNED
+}
+
+// Model Resource cho tài nguyên học tập
+model Resource {
+  id          String    @id @default(cuid())
+  title       String
+  description String    @db.Text
+  category    String
+  authorId    String
+  materials   Material[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Material {
+  id          String    @id @default(cuid())
+  type        String
+  name        String
+  link        String
+  resource    Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resourceId  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Models phụ trợ
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  posts     Post[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  posts     Post[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  userAgent    String?  // Thông tin browser/device
+  ipAddress    String?  // IP address
+  isValid      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+} 
