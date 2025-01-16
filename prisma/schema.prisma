@@ -120,8 +120,8 @@ model Session {
   id           String   @id @default(cuid())
   userId       String
   refreshToken String   @unique
-  userAgent    String?  // Thông tin browser/device
-  ipAddress    String?  // IP address
+  userAgent    String?
+  ipAddress    String? 
   isValid      Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
