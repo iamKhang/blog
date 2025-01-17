@@ -1,186 +1,166 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import { format } from 'date-fns'
-import { PlusCircle, Pin, PinOff, MoreVertical, Eye, EyeOff } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search } from "lucide-react";
+import { format } from "date-fns";
 
 interface Post {
-  id: string
-  title: string
-  content: string
-  isPinned: boolean
-  isHidden: boolean
-  lastUpdated: Date
+  id: string;
+  title: string;
+  excerpt: string;
+  isPinned: boolean;
+  isHidden: boolean;
+  createdAt: string;
+  categories: Array<{ id: string; name: string }>;
+  tags: Array<{ id: string; name: string }>;
 }
 
-const initialPosts: Post[] = [
-  {
-    id: '1',
-    title: 'Getting Started with Next.js',
-    content: 'Next.js is a powerful React framework that makes building fast and scalable web applications a breeze. In this post, we\'ll explore the basics of Next.js and how to set up your first project.',
-    isPinned: true,
-    isHidden: false,
-    lastUpdated: new Date('2023-06-15T10:30:00'),
-  },
-  {
-    id: '2',
-    title: 'Mastering React Hooks',
-    content: 'React Hooks have revolutionized the way we write React components. This comprehensive guide will take you through all the built-in hooks and show you how to create your own custom hooks.',
-    isPinned: false,
-    isHidden: false,
-    lastUpdated: new Date('2023-06-10T14:45:00'),
-  },
-  {
-    id: '3',
-    title: 'CSS-in-JS: Styled Components vs. Emotion',
-    content: 'CSS-in-JS libraries have gained popularity in recent years. In this comparison, we\'ll look at two of the most popular options: Styled Components and Emotion. We\'ll explore their similarities, differences, and use cases.',
-    isPinned: false,
-    isHidden: true,
-    lastUpdated: new Date('2023-06-05T09:15:00'),
-  },
-  {
-    id: '4',
-    title: 'GraphQL vs REST: Choosing the Right API Architecture',
-    content: 'When building modern web applications, choosing the right API architecture is crucial. This post compares GraphQL and REST, discussing their pros and cons to help you make an informed decision for your next project.',
-    isPinned: false,
-    isHidden: false,
-    lastUpdated: new Date('2023-06-01T16:20:00'),
-  },
-  {
-    id: '5',
-    title: 'Optimizing React Performance',
-    content: 'Performance is key in providing a great user experience. Learn about various techniques to optimize your React applications, including code splitting, memoization, and efficient state management.',
-    isPinned: true,
-    isHidden: false,
-    lastUpdated: new Date('2023-05-28T11:00:00'),
-  },
-  {
-    id: '6',
-    title: 'Introduction to TypeScript',
-    content: 'TypeScript adds static typing to JavaScript, making it easier to write and maintain large-scale applications. This introductory post covers the basics of TypeScript and how to integrate it into your projects.',
-    isPinned: false,
-    isHidden: false,
-    lastUpdated: new Date('2023-05-20T13:30:00'),
-  },
-]
+export default function PostsPage() {
+  const router = useRouter();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const limit = 10;
 
-export default function PostPage() {
-  const [posts, setPosts] = useState<Post[]>(initialPosts)
+  const { data, isLoading } = useQuery({
+    queryKey: ["posts", page, search],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/posts?page=${page}&limit=${limit}&search=${search}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch posts");
+      return response.json();
+    },
+  });
 
-  const sortedPosts = useMemo(() => {
-    return [...posts].sort((a, b) => {
-      if (a.isPinned === b.isPinned) {
-        return b.lastUpdated.getTime() - a.lastUpdated.getTime()
-      }
-      return a.isPinned ? -1 : 1
-    })
-  }, [posts])
-
-  const togglePin = (id: string) => {
-    setPosts(posts.map(post => 
-      post.id === id ? { ...post, isPinned: !post.isPinned } : post
-    ))
-  }
-
-  const toggleHidden = (id: string) => {
-    setPosts(posts.map(post => 
-      post.id === id ? { ...post, isHidden: !post.isHidden } : post
-    ))
-  }
+  const posts: Post[] = data?.posts || [];
+  const metadata = data?.metadata;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-900">Manage Posts</h1>
-        <Button asChild className="bg-[#EC8305] hover:bg-[#D97704]">
-          <Link href="/admin/posts/add-post">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Post
-          </Link>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Posts</h1>
+        <Button onClick={() => router.push("/admin/posts/add-post")}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Post
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Last Updated</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedPosts.map((post) => (
-            <TableRow key={post.id} className={post.isHidden ? 'opacity-60' : ''}>
-              <TableCell className="font-medium">
-                <div className="flex items-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="mr-2"
-                    onClick={() => togglePin(post.id)}
-                  >
-                    {post.isPinned ? (
-                      <Pin className="h-4 w-4 text-blue-900" />
-                    ) : (
-                      <PinOff className="h-4 w-4 text-gray-500" />
-                    )}
-                  </Button>
-                  {post.title}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="space-x-2">
-                  {post.isPinned && <Badge variant="secondary">Pinned</Badge>}
-                  {post.isHidden && <Badge variant="outline">Hidden</Badge>}
-                  {!post.isPinned && !post.isHidden && <Badge variant="default">Published</Badge>}
-                </div>
-              </TableCell>
-              <TableCell>{format(post.lastUpdated, 'MMM d, yyyy HH:mm')}</TableCell>
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/admin/posts/edit/${post.id}`}>
-                        Update
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleHidden(post.id)}>
-                      {post.isHidden ? (
-                        <>
-                          <Eye className="mr-2 h-4 w-4" />
-                          <span>Unhide</span>
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff className="mr-2 h-4 w-4" />
-                          <span>Hide</span>
-                        </>
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search posts..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      ) : (
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Categories</TableHead>
+                <TableHead>Tags</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {posts.map((post) => (
+                <TableRow key={post.id}>
+                  <TableCell>{post.title}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {post.categories.map((category) => (
+                        <Badge key={category.id} variant="secondary">
+                          {category.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {post.tags.map((tag) => (
+                        <Badge key={tag.id} variant="outline">
+                          {tag.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      {!post.isHidden && (
+                        <Badge variant="default">Published</Badge>
                       )}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                      {post.isPinned && <Badge variant="secondary">Pinned</Badge>}
+                      {post.isHidden && (
+                        <Badge variant="destructive">Hidden</Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(post.createdAt), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      onClick={() => router.push(`/admin/posts/${post.id}`)}
+                    >
+                      Edit
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-muted-foreground">
+              Showing {(page - 1) * limit + 1} to{" "}
+              {Math.min(page * limit, metadata?.total || 0)} of{" "}
+              {metadata?.total || 0} posts
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                disabled={page === metadata?.totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
-  )
+  );
 }

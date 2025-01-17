@@ -89,3 +89,132 @@ body {
   scrollbar-color: #3498db #e0e0e0; /* Màu của thanh kéo và màu nền */
   scrollbar-width: thin; /* Độ rộng thanh cuộn */
 }
+
+/* Thêm styles cho nội dung bài viết */
+.post-content {
+  @apply max-w-none;
+}
+
+.post-content > div {
+  @apply prose dark:prose-invert max-w-none;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+  @apply scroll-mt-24;
+}
+
+.post-content h2 {
+  @apply text-2xl font-bold mt-8 mb-4;
+}
+
+.post-content h3 {
+  @apply text-xl font-semibold mt-6 mb-3;
+}
+
+.post-content h4 {
+  @apply text-lg font-semibold mt-4 mb-2;
+}
+
+.post-content p {
+  @apply my-4 leading-relaxed text-justify;
+}
+
+.post-content ul {
+  @apply my-4 ml-6 space-y-2;
+}
+
+.post-content ul li {
+  @apply relative pl-6;
+}
+
+.post-content ul li::before {
+  content: "—";
+  @apply absolute left-0 text-gray-400;
+}
+
+/* Styles cho mục lục */
+.table-of-contents {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6;
+}
+
+@media (min-width: 1024px) {
+  .table-of-contents {
+    @apply top-24 max-h-[calc(100vh-120px)] overflow-y-auto;
+    /* @apply sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto; */
+
+  }
+}
+
+/* Tùy chỉnh thanh cuộn cho mục lục */
+.table-of-contents::-webkit-scrollbar,
+.table-of-contents div::-webkit-scrollbar {
+  @apply w-1;
+}
+
+.table-of-contents::-webkit-scrollbar-track,
+.table-of-contents div::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-700 rounded-full;
+}
+
+.table-of-contents::-webkit-scrollbar-thumb,
+.table-of-contents div::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500;
+}
+
+/* Thêm styles cho phần thông tin bài viết trong mục lục */
+.table-of-contents h2 {
+  @apply text-xl font-bold mb-2 text-gray-900 dark:text-gray-100 line-clamp-2;
+}
+
+.table-of-contents time {
+  @apply text-sm text-muted-foreground;
+}
+
+.table-of-contents h3 {
+  @apply text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100;
+}
+
+.table-of-contents ul {
+  @apply space-y-2;
+}
+
+.table-of-contents a {
+  @apply block text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary-foreground transition-colors duration-200 text-sm;
+}
+
+.table-of-contents .active {
+  @apply text-primary dark:text-primary-foreground font-medium;
+}
+
+/* Styles cho heading levels trong mục lục */
+.toc-level-1 {
+  @apply pl-0;
+}
+
+.toc-level-2 {
+  @apply pl-3;
+}
+
+.toc-level-3 {
+  @apply pl-6;
+}
+
+.toc-level-4 {
+  @apply pl-9;
+}
+
+/* Thêm smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Điều chỉnh vị trí scroll để tính đến header fixed */
+.post-content h1[id],
+.post-content h2[id],
+.post-content h3[id],
+.post-content h4[id] {
+  scroll-margin-top: 100px;
+}

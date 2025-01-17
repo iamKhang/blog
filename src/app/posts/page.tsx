@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -17,42 +16,32 @@ import {
 } from "@/components/ui/pagination"
 import { Eye, Heart } from 'lucide-react'
 
-// Mock data for blog posts
-const posts = Array(20).fill(null).map((_, i) => ({
-  id: i + 1,
-  title: `Blog Post ${i + 1}`,
-  description: 'This is a short description of the blog post. It provides a brief overview of the content.',
-  image: `https://picsum.photos/seed/post${i + 1}/300/200`, // URL ngẫu nhiên từ Picsum dựa trên seed
-  views: Math.floor(Math.random() * 1000),
-  likes: Math.floor(Math.random() * 100),
-  isPinned: i < 2,
-  isNew: i >= 2 && i < 5
-}));
-
-
 interface Post {
-  id: number;
+  id: string;
   title: string;
-  description: string;
-  image: string;
+  excerpt: string;
+  coverImage: string;
   views: number;
   likes: number;
   isPinned: boolean;
-  isNew: boolean;
+  createdAt: string;
+  slug: string;
+  categories: Array<{ id: string; name: string }>;
+  tags: Array<{ id: string; name: string }>;
 }
 
 const PostCard = ({ post }: { post: Post }) => (
   <Card className="flex flex-col h-full">
     <CardHeader className="p-0">
       <Link href={`/posts/${post.id}`}>
-        <Image src={post.image} alt={post.title} width={300} height={200} className="w-full h-48 object-cover" />
+        <Image src={post.coverImage} alt={post.title} width={300} height={200} className="w-full h-48 object-cover" />
       </Link>
     </CardHeader>
     <CardContent className="flex-grow p-4">
       <CardTitle className="text-lg mb-2">{post.title}</CardTitle>
-      <p className="text-sm text-gray-600 line-clamp-2 mb-4">{post.description}</p>
+      <p className="text-sm text-gray-600 line-clamp-2 mb-4">{post.excerpt}</p>
       <Button asChild className="w-full bg-blue-900 hover:bg-blue-800">
-        <Link href={`/posts/${post.id}`}>Read Post</Link>
+        <Link href={`/posts/${post.slug}`}>Read Post</Link>
       </Button>
     </CardContent>
     <CardFooter className="flex justify-between items-center p-4 bg-gray-100">
@@ -69,13 +58,29 @@ const PostCard = ({ post }: { post: Post }) => (
 )
 
 export default function BlogPostsPage() {
+  const [posts, setPosts] = useState<Post[]>([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const postsPerPage = 6
-  const totalPages = Math.ceil(posts.length / postsPerPage)
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch(`/api/posts?page=${currentPage}&limit=${postsPerPage}`)
+        if (!response.ok) throw new Error('Failed to fetch posts')
+        const data = await response.json()
+        setPosts(data.posts)
+        setTotalPages(data.metadata.totalPages)
+      } catch (error) {
+        console.error('Error fetching posts:', error)
+      }
+    }
+
+    fetchPosts()
+  }, [currentPage])
 
   const pinnedPosts = posts.filter(post => post.isPinned)
-  const newPosts = posts.filter(post => post.isNew)
-  const allPosts = posts.slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage)
+  const newPosts = posts.filter(post => new Date(post.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) // Posts from the last 7 days
 
   return (
     <div className="min-h-screen bg-white p-8">
@@ -108,7 +113,7 @@ export default function BlogPostsPage() {
       <section>
         <h2 className="text-2xl font-semibold mb-4 text-blue-900">All Posts</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {allPosts.map(post => (
+          {posts.map(post => (
             <PostCard key={post.id} post={post} />
           ))}
         </div>

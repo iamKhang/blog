@@ -1,30 +1,135 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { z } from "zod"; // Cài đặt: npm install zod
+import { z } from "zod";
+
+// GET /api/posts - Lấy danh sách posts có phân trang
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const search = searchParams.get("search") || "";
+    const categoryId = searchParams.get("categoryId");
+    const tagId = searchParams.get("tagId");
+
+    const skip = (page - 1) * limit;
+
+    // Xây dựng điều kiện tìm kiếm
+    const where = {
+      AND: [
+        {
+          OR: [
+            { title: { contains: search, mode: "insensitive" } },
+            { excerpt: { contains: search, mode: "insensitive" } },
+          ],
+        },
+        categoryId
+          ? {
+              categories: {
+                some: {
+                  id: categoryId,
+                },
+              },
+            }
+          : {},
+        tagId
+          ? {
+              tags: {
+                some: {
+                  id: tagId,
+                },
+              },
+            }
+          : {},
+        { isHidden: false },
+      ],
+    };
+
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        include: {
+          categories: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          tags: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+        skip,
+        take: limit,
+      }),
+      prisma.post.count({ where }),
+    ]);
+
+    // Tăng view count cho các bài viết được fetch
+    if (posts.length > 0) {
+      await Promise.all(
+        posts.map((post) =>
+          prisma.post.update({
+            where: { id: post.id },
+            data: { views: { increment: 1 } },
+          })
+        )
+      );
+    }
+
+    return NextResponse.json({
+      posts,
+      metadata: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("[POSTS_GET]", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
 
 // Schema validation cho request body
 const PostCreateSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  slug: z.string().min(1, "Slug is required"),
   content: z.string().min(1, "Content is required"),
   excerpt: z.string().min(1, "Excerpt is required"),
   coverImage: z.string().optional(),
-  published: z.boolean().default(false),
   isPinned: z.boolean().default(false),
   isHidden: z.boolean().default(false),
   authorId: z.string().min(1, "Author ID is required"),
   categories: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  slug: z.string(), // Slug sẽ được tạo tự động từ title
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // Validate request body
     const validatedData = PostCreateSchema.parse(body);
 
-    // Tạo bài post mới với categories và tags
+    // Kiểm tra xem slug đã tồn tại chưa
+    const existingPost = await prisma.post.findUnique({
+      where: { slug: validatedData.slug },
+    });
+
+    if (existingPost) {
+      return NextResponse.json(
+        { message: "A post with this slug already exists" },
+        { status: 400 }
+      );
+    }
+
     const post = await prisma.post.create({
       data: {
         title: validatedData.title,
@@ -32,24 +137,24 @@ export async function POST(request: Request) {
         content: validatedData.content,
         excerpt: validatedData.excerpt,
         coverImage: validatedData.coverImage,
-        published: validatedData.published,
         isPinned: validatedData.isPinned,
         isHidden: validatedData.isHidden,
         authorId: validatedData.authorId,
-        // Kết nối với categories nếu có
-        categories: validatedData.categories ? {
-          connect: validatedData.categories.map(categoryId => ({
-            id: categoryId
-          }))
-        } : undefined,
-        // Kết nối với tags nếu có
-        tags: validatedData.tags ? {
-          connect: validatedData.tags.map(tagId => ({
-            id: tagId
-          }))
-        } : undefined,
+        categories: validatedData.categories
+          ? {
+              connect: validatedData.categories.map((categoryId) => ({
+                id: categoryId,
+              })),
+            }
+          : undefined,
+        tags: validatedData.tags
+          ? {
+              connect: validatedData.tags.map((tagId) => ({
+                id: tagId,
+              })),
+            }
+          : undefined,
       },
-      // Include related data trong response
       include: {
         categories: true,
         tags: true,
@@ -57,31 +162,22 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      { 
-        message: "Post created successfully", 
-        post 
-      }, 
+      { message: "Post created successfully", post },
       { status: 201 }
     );
-
   } catch (error) {
     console.error("POST ERROR:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          message: "Invalid request data", 
-          errors: error.errors 
-        }, 
+        { message: "Invalid request data", errors: error.errors },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { 
-        message: "Internal server error" 
-      }, 
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
-} 
+}
