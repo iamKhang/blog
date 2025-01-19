@@ -4,6 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, Eye, Calendar } from 'lucide-react';
+import { PostContent } from "@/components/PostContent";
+
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface Tag {
+  id: string;
+  name: string;
+}
 
 interface Props {
   params: {
@@ -60,7 +71,7 @@ export default async function PostPage({ params }: Props) {
         <div className="container relative h-full max-w-7xl mx-auto px-4 flex flex-col justify-end pb-12 content-post">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              {post.categories.map((category) => (
+              {post.categories.map((category: Category) => (
                 <Badge 
                   key={category.id} 
                   className="bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 transition-colors"
@@ -94,14 +105,12 @@ export default async function PostPage({ params }: Props) {
       <div className="container max-w-7xl mx-auto px-4 py-12">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
           {/* Content */}
-          <div className="prose dark:prose-invert max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: post.content }} />
-          </div>
+          <PostContent content={post.content} />
 
           {/* Tags */}
           <div className="mt-8 pt-8 border-t dark:border-gray-700">
             <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
+              {post.tags.map((tag: Tag) => (
                 <Badge 
                   key={tag.id} 
                   variant="outline"

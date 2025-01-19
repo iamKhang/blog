@@ -37,10 +37,10 @@ const PostCard = ({ post }: { post: Post }) => (
         <Image src={post.coverImage} alt={post.title} width={300} height={200} className="w-full h-48 object-cover" />
       </Link>
     </CardHeader>
-    <CardContent className="flex-grow p-4">
-      <CardTitle className="text-lg mb-2">{post.title}</CardTitle>
-      <p className="text-sm text-gray-600 line-clamp-2 mb-4">{post.excerpt}</p>
-      <Button asChild className="w-full bg-blue-900 hover:bg-blue-800">
+    <CardContent className="flex-grow p-4 flex flex-col">
+      <CardTitle className="text-lg mb-2 line-clamp-2 min-h-[3.5rem]">{post.title}</CardTitle>
+      <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-grow min-h-[2.5rem]">{post.excerpt}</p>
+      <Button asChild className="w-full bg-blue-900 hover:bg-blue-800 mt-auto">
         <Link href={`/posts/${post.slug}`}>Read Post</Link>
       </Button>
     </CardContent>
@@ -88,7 +88,7 @@ export default function BlogPostsPage() {
 
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4 text-blue-900">Pinned Posts</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {pinnedPosts.map(post => (
             <div key={post.id} className="relative">
               <PostCard post={post} />
@@ -100,7 +100,7 @@ export default function BlogPostsPage() {
 
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4 text-blue-900">New Posts</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {newPosts.map(post => (
             <div key={post.id} className="relative">
               <PostCard post={post} />
@@ -112,7 +112,7 @@ export default function BlogPostsPage() {
 
       <section>
         <h2 className="text-2xl font-semibold mb-4 text-blue-900">All Posts</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {posts.map(post => (
             <PostCard key={post.id} post={post} />
           ))}
