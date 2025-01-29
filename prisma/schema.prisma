@@ -28,7 +28,6 @@ enum Role {
   ADMIN
 }
 
-// Model Post cho blog
 model Post {
   id          String    @id @default(cuid())
   title       String
@@ -48,15 +47,14 @@ model Post {
   updatedAt   DateTime  @updatedAt
 }
 
-// Model Project cho showcase dự án
 model Project {
   id            String    @id @default(cuid())
   title         String
   slug          String    @unique
+  excerpt     String    @db.Text
   description   String    @db.Text
   thumbnail     String
-  technologies  String[]
-  category      String
+  technologies  Technology[] @relation("ProjectTechnologies")
   status        ProjectStatus
   githubUrl     String?
   demoUrl       String?
@@ -65,7 +63,6 @@ model Project {
   likes         Int       @default(0)
   isPinned      Boolean   @default(false)
   isHidden      Boolean   @default(false)
-  authorId      String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -76,28 +73,7 @@ enum ProjectStatus {
   PLANNED
 }
 
-// Model Resource cho tài nguyên học tập
-model Resource {
-  id          String    @id @default(cuid())
-  title       String
-  description String    @db.Text
-  category    String
-  authorId    String
-  materials   Material[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
 
-model Material {
-  id          String    @id @default(cuid())
-  type        String
-  name        String
-  link        String
-  resource    Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  resourceId  String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
 
 // Models phụ trợ
 model Category {
@@ -114,6 +90,13 @@ model Tag {
   posts     Post[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Technology {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  url       String
+  projects  Project[] @relation("ProjectTechnologies")
 }
 
 model Session {

@@ -38,7 +38,7 @@ export default function PostsPage() {
     queryKey: ["posts", page, search],
     queryFn: async () => {
       const response = await fetch(
-        `/api/posts?page=${page}&limit=${limit}&search=${search}`
+        `/api/posts/get-all?page=${page}&limit=${limit}&search=${search}`
       );
       if (!response.ok) throw new Error("Failed to fetch posts");
       return response.json();
@@ -126,7 +126,7 @@ export default function PostsPage() {
                   <TableCell>
                     <Button
                       variant="ghost"
-                      onClick={() => router.push(`/admin/posts/${post.id}`)}
+                      onClick={() => router.push(`/admin/posts/edit-post/${post.id}`)}
                     >
                       Edit
                     </Button>

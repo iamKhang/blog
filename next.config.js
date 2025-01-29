@@ -2,7 +2,8 @@
 const nextConfig = {
   images: {
     domains: [
-      'nuvyktdqoclzyglcwukn.supabase.co' // Thêm domain của Supabase của bạn
+      'nuvyktdqoclzyglcwukn.supabase.co', // Thêm domain của Supabase của bạn
+      'cdn.vietnambiz.vn'
     ],
   },
 }

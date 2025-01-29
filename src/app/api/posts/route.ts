@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 // GET /api/posts - Lấy danh sách posts có phân trang
 export async function GET(request: Request) {
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
 
     const [posts, total] = await Promise.all([
       prisma.post.findMany({
-        where,
+        where: where as Prisma.PostWhereInput,
         include: {
           categories: {
             select: {
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
       }),
-      prisma.post.count({ where }),
+      prisma.post.count({ where: where as Prisma.PostWhereInput }),
     ]);
 
     // Tăng view count cho các bài viết được fetch
