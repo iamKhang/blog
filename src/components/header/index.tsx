@@ -9,8 +9,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Sun } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Menu, Sun, User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -21,6 +31,59 @@ const navItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const { user, isAuthenticated, logout, isAdmin } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
+
+  const UserMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={user?.avatar || ''} alt={user?.name || ''} />
+            <AvatarFallback className="bg-blue-500 text-white">
+              {user?.name?.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end">
+        <div className="flex items-center justify-start gap-2 p-2">
+          <div className="flex flex-col space-y-1 leading-none">
+            <p className="font-medium">{user?.name}</p>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
+          </div>
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/profile" className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        {isAdmin() && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin/dashboard" className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Admin Panel</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-red-600 cursor-pointer"
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Đăng xuất</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <header className="border-b bg-primaryCustom">
@@ -49,23 +112,30 @@ export function Header() {
           ))}
 
           <div className="ml-4 flex items-center space-x-1 border-l-slate-200 border-l-2 pl-3">
-            <Button
-              variant="ghost"
-              size="lg"
-              asChild
-              className="text-white font-semibold hover:text-white hover:bg-[#EC8305]"
-            >
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button
-              size="lg"
-              asChild
-              className="bg-[#EC8305] text-white font-semibold hover:bg-blue-900"
-            >
-              <Link href="/register">Register</Link>
-            </Button>
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  asChild
+                  className="text-white font-semibold hover:text-white hover:bg-[#EC8305]"
+                >
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button
+                  size="lg"
+                  asChild
+                  className="bg-[#EC8305] text-white font-semibold hover:bg-blue-900"
+                >
+                  <Link href="/register">Register</Link>
+                </Button>
+              </>
+            )}
           </div>
         </nav>
+
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button
@@ -94,21 +164,75 @@ export function Header() {
                 </Button>
               ))}
               <div className="border-t pt-4 mt-4">
-                <Button
-                  variant="ghost"
-                  className="justify-start w-full"
-                  asChild
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button
-                  className="justify-start w-full mt-2 bg-blue-800 text-white hover:bg-blue-900"
-                  asChild
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Link href="/register">Register</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center space-x-4 mb-4">
+                      <Avatar>
+                        <AvatarImage src={user?.avatar || ''} alt={user?.name || ''} />
+                        <AvatarFallback className="bg-blue-500 text-white">
+                          {user?.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{user?.name}</p>
+                        <p className="text-sm text-muted-foreground">{user?.email}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="justify-start w-full"
+                      asChild
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link href="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </Button>
+                    {isAdmin() && (
+                      <Button
+                        variant="ghost"
+                        className="justify-start w-full mt-2"
+                        asChild
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Link href="/admin/dashboard">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </Button>
+                    )}
+                    <Button
+                      variant="destructive"
+                      className="justify-start w-full mt-2"
+                      onClick={() => {
+                        handleLogout();
+                        setIsOpen(false);
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Đăng xuất
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="justify-start w-full"
+                      asChild
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link href="/login">Login</Link>
+                    </Button>
+                    <Button
+                      className="justify-start w-full mt-2 bg-blue-800 text-white hover:bg-blue-900"
+                      asChild
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link href="/register">Register</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </SheetContent>

@@ -7,8 +7,20 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (
+    name: string, 
+    email: string, 
+    password: string, 
+    options?: RegisterOptions
+  ) => Promise<void>;
   logout: () => void;
+  setError: (error: string | null) => void;
+}
+
+interface RegisterOptions {
+  bio?: string;
+  dob?: string | null;
+  avatar?: string | null;
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -16,6 +28,7 @@ export const useAuth = create<AuthState>((set) => ({
   accessToken: null,
   isLoading: false,
   error: null,
+  setError: (error: string | null) => set({ error }),
 
   login: async (email: string, password: string) => {
     try {
@@ -29,7 +42,7 @@ export const useAuth = create<AuthState>((set) => ({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.error || 'Login failed');
       }
 
       set({ 
@@ -42,22 +55,38 @@ export const useAuth = create<AuthState>((set) => ({
         error: error instanceof Error ? error.message : 'An error occurred', 
         isLoading: false 
       });
+      throw error;
     }
   },
 
-  register: async (name: string, email: string, password: string) => {
+  register: async (
+    name: string, 
+    email: string, 
+    password: string,
+    options?: RegisterOptions
+  ) => {
     try {
       set({ isLoading: true, error: null });
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          bio: options?.bio,
+          dob: options?.dob,
+          avatar: options?.avatar,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        throw new Error(data.error || 'Registration failed');
       }
 
       set({ 
@@ -67,9 +96,10 @@ export const useAuth = create<AuthState>((set) => ({
       });
     } catch (error) {
       set({ 
-        error: error instanceof Error ? error.message : 'An error occurred', 
+        error: error instanceof Error ? error.message : 'An error occurred',
         isLoading: false 
       });
+      throw error;
     }
   },
 

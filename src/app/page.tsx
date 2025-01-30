@@ -6,7 +6,6 @@ import MarqueeCustom from "@/components/hero/MarqueeCustom";
 import { ProjectShowcase } from "@/components/project_session";
 import { MotivationalQuotes } from "@/components/quote";
 import { SkillsSection } from "@/components/skill_section";
-import { Button } from "@/components/ui/button";
 
 const languageIcons = [
   "/language/csharp.svg",

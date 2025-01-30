@@ -14,12 +14,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading, error, clearError, isAdmin } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -32,6 +32,8 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }));
+    // Clear error when user starts typing
+    if (error) clearError();
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -39,15 +41,20 @@ export default function LoginPage() {
     try {
       await login(formData.email, formData.password);
       toast({
-        title: "Login successful",
-        description: "Welcome back!",
+        title: "Đăng nhập thành công",
+        description: "Chào mừng bạn trở lại!",
       });
-      router.push("/dashboard"); // hoặc trang chính sau khi đăng nhập
+      
+      // Kiểm tra role và điều hướng
+      if (isAdmin()) {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/"); // hoặc trang mặc định cho user thường
+      }
     } catch (error) {
       toast({
-        title: "Login failed",
-        description:
-          error instanceof Error ? error.message : "An error occurred",
+        title: "Đăng nhập thất bại",
+        description: error instanceof Error ? error.message : "Đã có lỗi xảy ra",
         variant: "destructive",
       });
     }
@@ -58,7 +65,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="bg-blue-900 text-white rounded-t-lg">
           <CardTitle className="text-2xl font-bold text-center">
-            Login
+            Đăng nhập
           </CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -72,20 +79,20 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Nhập email của bạn"
                 value={formData.email}
                 onChange={handleChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mật khẩu</Label>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Nhập mật khẩu của bạn"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -115,16 +122,16 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Logging in...
+                  Đang đăng nhập...
                 </>
               ) : (
-                "Login"
+                "Đăng nhập"
               )}
             </Button>
             <div className="text-center text-sm">
-              Dont have an account?{" "}
+              Chưa có tài khoản?{" "}
               <Link href="/register" className="text-[#EC8305] hover:underline">
-                Register here
+                Đăng ký ngay
               </Link>
             </div>
           </CardFooter>
