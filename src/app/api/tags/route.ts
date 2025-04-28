@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { z } from "zod";
+import prisma from "@/lib/prisma";
 
 // Schema cho việc tạo tag
 const TagCreateSchema = z.object({
@@ -9,6 +9,7 @@ const TagCreateSchema = z.object({
 
 export async function GET() {
   try {
+    // Sử dụng Prisma để lấy danh sách tags
     const tags = await prisma.tag.findMany({
       orderBy: {
         name: 'asc',
@@ -19,7 +20,7 @@ export async function GET() {
   } catch (error) {
     console.error("GET TAGS ERROR:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error: String(error) },
       { status: 500 }
     );
   }
@@ -42,10 +43,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Tạo tag mới
+    // Tạo tag mới với mảng postIds rỗng
     const tag = await prisma.tag.create({
       data: {
         name: validatedData.name,
+        postIds: [], // Thêm mảng rỗng cho postIds
       },
     });
 
@@ -59,8 +61,8 @@ export async function POST(request: Request) {
       );
     }
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error: String(error) },
       { status: 500 }
     );
   }
-} 
+}

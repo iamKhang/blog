@@ -75,8 +75,21 @@ const createCategory = async (name: string) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) throw new Error("Failed to create category");
-  return response.json();
+
+  // Đọc dữ liệu JSON từ response trước
+  const data = await response.json();
+
+  // Nếu response không ok, ném lỗi với thông báo từ server
+  if (!response.ok) {
+    // Kiểm tra nếu là lỗi category đã tồn tại
+    if (response.status === 400 && data.message === "Category already exists") {
+      throw new Error("Category already exists");
+    }
+    // Các lỗi khác
+    throw new Error(data.message || "Failed to create category");
+  }
+
+  return data;
 };
 
 const createTag = async (name: string) => {
@@ -85,8 +98,21 @@ const createTag = async (name: string) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) throw new Error("Failed to create tag");
-  return response.json();
+
+  // Đọc dữ liệu JSON từ response trước
+  const data = await response.json();
+
+  // Nếu response không ok, ném lỗi với thông báo từ server
+  if (!response.ok) {
+    // Kiểm tra nếu là lỗi tag đã tồn tại
+    if (response.status === 400 && data.message === "Tag already exists") {
+      throw new Error("Tag already exists");
+    }
+    // Các lỗi khác
+    throw new Error(data.message || "Failed to create tag");
+  }
+
+  return data;
 };
 
 const searchCategories = async (query: string) => {
@@ -147,14 +173,24 @@ export default function AddPostPage() {
 
   const createCategoryMutation = useMutation({
     mutationFn: createCategory,
-    onSuccess: () => {
+    onSuccess: (newCategory) => {
+      // Cập nhật cache của React Query với category mới
+      queryClient.setQueryData(["categories"], (oldData: Category[] = []) => {
+        return [...oldData, newCategory];
+      });
+      // Đồng thời invalidate query để đảm bảo dữ liệu được cập nhật từ server
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
   });
 
   const createTagMutation = useMutation({
     mutationFn: createTag,
-    onSuccess: () => {
+    onSuccess: (newTag) => {
+      // Cập nhật cache của React Query với tag mới
+      queryClient.setQueryData(["tags"], (oldData: Tag[] = []) => {
+        return [...oldData, newTag];
+      });
+      // Đồng thời invalidate query để đảm bảo dữ liệu được cập nhật từ server
       queryClient.invalidateQueries({ queryKey: ["tags"] });
     },
   });
@@ -362,48 +398,87 @@ export default function AddPostPage() {
                     (category: Category) => field.value.includes(category.id)
                   );
 
+                  // Sử dụng biến để ngăn chặn việc gửi nhiều request
+                  const [isSubmitting, setIsSubmitting] = useState(false);
+
                   const handleKeyDown = async (
                     e: React.KeyboardEvent<HTMLInputElement>
                   ) => {
-                    if (e.key === "Enter" && categorySearchValue.trim()) {
+                    if (e.key === "Enter" && categorySearchValue.trim() && !isSubmitting) {
                       e.preventDefault();
 
-                      const existingCategory = categories.find(
-                        (category: Category) =>
-                          category.name.toLowerCase() ===
-                          categorySearchValue.toLowerCase()
-                      );
+                      // Đánh dấu đang xử lý để ngăn chặn việc gửi nhiều request
+                      setIsSubmitting(true);
 
-                      if (existingCategory) {
-                        if (!field.value.includes(existingCategory.id)) {
-                          field.onChange([...field.value, existingCategory.id]);
+                      try {
+                        const existingCategory = categories.find(
+                          (category: Category) =>
+                            category.name.toLowerCase() ===
+                            categorySearchValue.toLowerCase()
+                        );
+
+                        if (existingCategory) {
+                          if (!field.value.includes(existingCategory.id)) {
+                            field.onChange([...field.value, existingCategory.id]);
+                          }
+                        } else {
+                          try {
+                            // Tạo category mới và lấy kết quả trả về
+                            const newCategory = await createCategoryMutation.mutateAsync(
+                              categorySearchValue
+                            );
+
+                            // Thêm category mới vào danh sách đã chọn
+                            if (newCategory && newCategory.id) {
+                              field.onChange([...field.value, newCategory.id]);
+                            }
+
+                            toast({
+                              title: "Success",
+                              description: "Category created successfully",
+                            });
+                          } catch (error) {
+                            console.error("Category creation error:", error);
+
+                            // Xử lý trường hợp category đã tồn tại
+                            if (error instanceof Error && error.message === "Category already exists") {
+                              // Tìm category trong danh sách hiện có
+                              const existingCat = categories.find(
+                                (cat: Category) => cat.name.toLowerCase() === categorySearchValue.toLowerCase()
+                              );
+
+                              // Nếu tìm thấy và chưa được chọn, thêm vào danh sách đã chọn
+                              if (existingCat && !field.value.includes(existingCat.id)) {
+                                field.onChange([...field.value, existingCat.id]);
+                                toast({
+                                  title: "Info",
+                                  description: "Category already exists and has been selected",
+                                });
+                              } else {
+                                toast({
+                                  title: "Info",
+                                  description: "Category already exists",
+                                });
+                              }
+                            } else {
+                              // Các lỗi khác
+                              toast({
+                                title: "Error",
+                                description:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "Failed to create category",
+                                variant: "destructive",
+                              });
+                            }
+                          }
                         }
-                      } else {
-                        try {
-                          await createCategoryMutation.mutateAsync(
-                            categorySearchValue
-                          );
-                          queryClient.invalidateQueries({
-                            queryKey: ["categories"],
-                          });
-                          toast({
-                            title: "Success",
-                            description: "Category created successfully",
-                          });
-                        } catch (error) {
-                          console.error("Category creation error:", error);
-                          toast({
-                            title: "Error",
-                            description:
-                              error instanceof Error
-                                ? error.message
-                                : "Failed to create category",
-                            variant: "destructive",
-                          });
-                        }
+
+                        setCategorySearchValue("");
+                      } finally {
+                        // Đánh dấu đã xử lý xong
+                        setIsSubmitting(false);
                       }
-
-                      setCategorySearchValue("");
                     }
                   };
 
@@ -486,44 +561,85 @@ export default function AddPostPage() {
                     field.value.includes(tag.id)
                   );
 
+                  // Sử dụng biến để ngăn chặn việc gửi nhiều request
+                  const [isTagSubmitting, setIsTagSubmitting] = useState(false);
+
                   const handleKeyDown = async (
                     e: React.KeyboardEvent<HTMLInputElement>
                   ) => {
-                    if (e.key === "Enter" && tagSearchValue.trim()) {
+                    if (e.key === "Enter" && tagSearchValue.trim() && !isTagSubmitting) {
                       e.preventDefault();
 
-                      const existingTag = tags.find(
-                        (tag: Tag) =>
-                          tag.name.toLowerCase() ===
-                          tagSearchValue.toLowerCase()
-                      );
+                      // Đánh dấu đang xử lý để ngăn chặn việc gửi nhiều request
+                      setIsTagSubmitting(true);
 
-                      if (existingTag) {
-                        if (!field.value.includes(existingTag.id)) {
-                          field.onChange([...field.value, existingTag.id]);
+                      try {
+                        const existingTag = tags.find(
+                          (tag: Tag) =>
+                            tag.name.toLowerCase() ===
+                            tagSearchValue.toLowerCase()
+                        );
+
+                        if (existingTag) {
+                          if (!field.value.includes(existingTag.id)) {
+                            field.onChange([...field.value, existingTag.id]);
+                          }
+                        } else {
+                          try {
+                            // Tạo tag mới và lấy kết quả trả về
+                            const newTag = await createTagMutation.mutateAsync(tagSearchValue);
+
+                            // Thêm tag mới vào danh sách đã chọn
+                            if (newTag && newTag.id) {
+                              field.onChange([...field.value, newTag.id]);
+                            }
+
+                            toast({
+                              title: "Success",
+                              description: "Tag created successfully",
+                            });
+                          } catch (error) {
+                            console.error("Tag creation error:", error);
+
+                            // Xử lý trường hợp tag đã tồn tại
+                            if (error instanceof Error && error.message === "Tag already exists") {
+                              // Tìm tag trong danh sách hiện có
+                              const existingTag = tags.find(
+                                (t: Tag) => t.name.toLowerCase() === tagSearchValue.toLowerCase()
+                              );
+
+                              // Nếu tìm thấy và chưa được chọn, thêm vào danh sách đã chọn
+                              if (existingTag && !field.value.includes(existingTag.id)) {
+                                field.onChange([...field.value, existingTag.id]);
+                                toast({
+                                  title: "Info",
+                                  description: "Tag already exists and has been selected",
+                                });
+                              } else {
+                                toast({
+                                  title: "Info",
+                                  description: "Tag already exists",
+                                });
+                              }
+                            } else {
+                              // Các lỗi khác
+                              toast({
+                                title: "Error",
+                                description:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "Failed to create tag",
+                                variant: "destructive",
+                              });
+                            }
+                          }
                         }
-                      } else {
-                        try {
-                          await createTagMutation.mutateAsync(tagSearchValue);
-                          queryClient.invalidateQueries({ queryKey: ["tags"] });
-                          toast({
-                            title: "Success",
-                            description: "Tag created successfully",
-                          });
-                        } catch (error) {
-                          console.error("Tag creation error:", error);
-                          toast({
-                            title: "Error",
-                            description:
-                              error instanceof Error
-                                ? error.message
-                                : "Failed to create tag",
-                            variant: "destructive",
-                          });
-                        }
+
+                        setTagSearchValue("");
+                      } finally {
+                        // Đánh dấu đã xử lý xong
+                        setIsTagSubmitting(false);
                       }
-
-                      setTagSearchValue("");
                     }
                   };
 

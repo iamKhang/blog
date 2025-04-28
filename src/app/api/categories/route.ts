@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { z } from "zod";
+import prisma from "@/lib/prisma";
 
 // Schema cho việc tạo category
 const CategoryCreateSchema = z.object({
@@ -9,6 +9,7 @@ const CategoryCreateSchema = z.object({
 
 export async function GET() {
   try {
+    // Sử dụng Prisma để lấy danh sách categories
     const categories = await prisma.category.findMany({
       orderBy: {
         name: 'asc',
@@ -19,7 +20,7 @@ export async function GET() {
   } catch (error) {
     console.error("GET CATEGORIES ERROR:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error: String(error) },
       { status: 500 }
     );
   }
@@ -42,10 +43,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Tạo category mới
+    // Tạo category mới với mảng postIds rỗng
     const category = await prisma.category.create({
       data: {
         name: validatedData.name,
+        postIds: [], // Thêm mảng rỗng cho postIds
       },
     });
 
@@ -59,8 +61,8 @@ export async function POST(request: Request) {
       );
     }
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error: String(error) },
       { status: 500 }
     );
   }
-} 
+}
