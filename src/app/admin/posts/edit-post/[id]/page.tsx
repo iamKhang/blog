@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,6 +25,7 @@ import { Loader2, ImagePlus, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Category, Tag } from "@prisma/client";
+import { TinyEditor } from "@/components/TinyEditor";
 
 interface Props {
   params: {
@@ -46,18 +46,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-// Dynamic import for TinyMCE Editor
-const Editor = dynamic(
-  () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center h-[500px] border rounded-md">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    ),
-    ssr: false,
-  }
-);
+
 
 export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -66,8 +55,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
-  
-  const { id: postId } = use(params); 
+
+  const { id: postId } = use(params);
 
   const {
     register,
@@ -303,51 +292,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 name="content"
                 control={control}
                 render={({ field: { onChange, value } }) => (
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                    init={{
-                      height: 500,
-                      menubar: true,
-                      plugins: [
-                        "advlist",
-                        "autolink",
-                        "lists",
-                        "link",
-                        "image",
-                        "charmap",
-                        "preview",
-                        "anchor",
-                        "searchreplace",
-                        "visualblocks",
-                        "code",
-                        "fullscreen",
-                        "insertdatetime",
-                        "media",
-                        "table",
-                        "code",
-                        "help",
-                        "wordcount",
-                        "codesample",
-                      ],
-                      toolbar:
-                        "undo redo | blocks | " +
-                        "bold italic forecolor | alignleft aligncenter " +
-                        "alignright alignjustify | bullist numlist outdent indent | " +
-                        "image media codesample  | removeformat | help",
-                      images_upload_handler: async (blobInfo) => {
-                        try {
-                          const imageUrl = await handleImageUpload(
-                            blobInfo.blob()
-                          );
-                          return imageUrl;
-                        } catch (error) {
-                          console.error("Editor image upload error:", error);
-                          throw new Error("Failed to upload image");
-                        }
-                      },
-                    }}
-                    onEditorChange={onChange}
+                  <TinyEditor
                     value={value}
+                    onEditorChange={onChange}
+                    imagesUploadHandler={async (blobInfo) => {
+                      return await handleImageUpload(blobInfo.blob());
+                    }}
                   />
                 )}
               />
@@ -363,7 +313,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 name="categories"
                 control={control}
                 render={({ field }) => {
-                  const selectedCategories = categories.filter((category: Category) => 
+                  const selectedCategories = categories.filter((category: Category) =>
                     field.value?.includes(category.id)
                   );
 
@@ -424,7 +374,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 name="tags"
                 control={control}
                 render={({ field }) => {
-                  const selectedTags = tags.filter((tag: Tag) => 
+                  const selectedTags = tags.filter((tag: Tag) =>
                     field.value?.includes(tag.id)
                   );
 
@@ -524,4 +474,4 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       </Card>
     </div>
   );
-} 
+}

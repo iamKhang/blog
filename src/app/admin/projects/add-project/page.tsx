@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,6 +30,7 @@ import { uploadFile } from "@/lib/supabase";
 import { Loader2, ImagePlus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import { TinyEditor } from "@/components/TinyEditor";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -48,18 +48,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-// Dynamic import for TinyMCE Editor
-const Editor = dynamic(
-  () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center h-[500px] border rounded-md">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    ),
-    ssr: false,
-  }
-);
+
 
 const fetchTechnologies = async () => {
   const response = await fetch("/api/technologies");
@@ -230,52 +219,15 @@ export default function AddProjectPage() {
                 name="description"
                 control={control}
                 render={({ field: { onChange, value } }) => (
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                    init={{
-                      height: 500,
-                      menubar: true,
-                      plugins: [
-                        "advlist",
-                        "autolink",
-                        "lists",
-                        "link",
-                        "image",
-                        "charmap",
-                        "preview",
-                        "anchor",
-                        "searchreplace",
-                        "visualblocks",
-                        "code",
-                        "fullscreen",
-                        "insertdatetime",
-                        "media",
-                        "table",
-                        "code",
-                        "help",
-                        "wordcount",
-                        "codesample",
-                      ],
-                      toolbar:
-                        "undo redo | blocks | " +
-                        "bold italic forecolor | alignleft aligncenter " +
-                        "alignright alignjustify | bullist numlist outdent indent | " +
-                        "image media codesample | removeformat | help",
-                      images_upload_handler: async (blobInfo) => {
-                        try {
-                          const file = new File([blobInfo.blob()], `image-${Date.now()}.png`, {
-                            type: blobInfo.blob().type,
-                          });
-                          const imageUrl = await handleImageUpload(file);
-                          return imageUrl;
-                        } catch (error) {
-                          console.error("Editor image upload error:", error);
-                          throw new Error("Failed to upload image");
-                        }
-                      },
-                    }}
-                    onEditorChange={onChange}
+                  <TinyEditor
                     value={value}
+                    onEditorChange={onChange}
+                    imagesUploadHandler={async (blobInfo) => {
+                      const file = new File([blobInfo.blob()], `image-${Date.now()}.png`, {
+                        type: blobInfo.blob().type,
+                      });
+                      return await handleImageUpload(file);
+                    }}
                   />
                 )}
               />

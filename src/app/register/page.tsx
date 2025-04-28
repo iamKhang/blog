@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,18 +12,7 @@ import { EyeIcon, EyeOffIcon, Loader2, ImagePlus, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { uploadFile } from '@/lib/supabase'
-
-const Editor = dynamic(
-  () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center h-[200px] border rounded-md">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    ),
-    ssr: false,
-  }
-)
+import { TinyEditor } from '@/components/TinyEditor'
 
 export default function RegistrationPage() {
   const router = useRouter()
@@ -61,7 +49,7 @@ export default function RegistrationPage() {
           setAvatarPreview(reader.result as string)
         }
         reader.readAsDataURL(file)
-        
+
         setFormData(prev => ({
           ...prev,
           avatar: file
@@ -79,7 +67,7 @@ export default function RegistrationPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password mismatch",
@@ -105,12 +93,12 @@ export default function RegistrationPage() {
       }
 
       await register(
-        formData.name, 
-        formData.email, 
-        formData.password, 
+        formData.name,
+        formData.email,
+        formData.password,
         {
           avatar: avatarUrl,
-          bio: formData.bio || null,
+          bio: formData.bio || undefined,
           dob: formData.dob ? new Date(formData.dob).toISOString() : null
         }
       )
@@ -119,11 +107,11 @@ export default function RegistrationPage() {
         title: "Success",
         description: "Registration successful! Redirecting...",
       })
-      
+
       setTimeout(() => {
         router.push('/dashboard')
       }, 1500)
-      
+
     } catch (error) {
       console.error('Registration error:', error)
       toast({
@@ -293,33 +281,20 @@ export default function RegistrationPage() {
             {/* Bio Editor */}
             <div className="space-y-2">
               <Label>Bio</Label>
-              <Editor
-                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                init={{
-                  height: 200,
-                  menubar: false,
-                  plugins: [
-                    'advlist', 'autolink', 'lists', 'link', 'charmap',
-                    'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'wordcount'
-                  ],
-                  toolbar: 'undo redo | blocks | ' +
-                    'bold italic | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist | ' +
-                    'removeformat',
-                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-                }}
+              <TinyEditor
                 value={formData.bio}
                 onEditorChange={(content) => {
                   setFormData(prev => ({ ...prev, bio: content }))
                 }}
+                height={200}
+                minimalSetup={true}
               />
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-[#EC8305] hover:bg-[#D97704]"
               disabled={isLoading}
             >

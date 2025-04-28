@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -33,6 +32,7 @@ import { Loader2, ImagePlus, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
+import { TinyEditor } from "@/components/TinyEditor";
 
 interface Category {
   id: string;
@@ -107,17 +107,7 @@ const searchTags = async (query: string) => {
   return data;
 };
 
-const Editor = dynamic(
-  () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center h-[500px] border rounded-md">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    ),
-    ssr: false, // This is important - it prevents server-side rendering
-  }
-);
+
 
 export default function AddPostPage() {
   const router = useRouter();
@@ -343,51 +333,12 @@ export default function AddPostPage() {
                 name="content"
                 control={control}
                 render={({ field: { onChange, value } }) => (
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                    init={{
-                      height: 500,
-                      menubar: true,
-                      plugins: [
-                        "advlist",
-                        "autolink",
-                        "lists",
-                        "link",
-                        "image",
-                        "charmap",
-                        "preview",
-                        "anchor",
-                        "searchreplace",
-                        "visualblocks",
-                        "code",
-                        "fullscreen",
-                        "insertdatetime",
-                        "media",
-                        "table",
-                        "code",
-                        "help",
-                        "wordcount",
-                        "codesample",
-                      ],
-                      toolbar:
-                        "undo redo | blocks | " +
-                        "bold italic forecolor | alignleft aligncenter " +
-                        "alignright alignjustify | bullist numlist outdent indent | " +
-                        "image media codesample  | removeformat | help",
-                      images_upload_handler: async (blobInfo) => {
-                        try {
-                          const imageUrl = await handleImageUpload(
-                            blobInfo.blob()
-                          );
-                          return imageUrl;
-                        } catch (error) {
-                          console.error("Editor image upload error:", error);
-                          throw new Error("Failed to upload image");
-                        }
-                      },
-                    }}
-                    onEditorChange={onChange}
+                  <TinyEditor
                     value={value}
+                    onEditorChange={onChange}
+                    imagesUploadHandler={async (blobInfo) => {
+                      return await handleImageUpload(blobInfo.blob());
+                    }}
                   />
                 )}
               />
