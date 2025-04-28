@@ -43,19 +43,25 @@ export function ProjectShowcase() {
           Featured Projects
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {projects
-            .filter(p => !p.isHidden && p.isPinned)
-            .slice(0, 4)
-            .map((project) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <ProjectCard project={project} />
-              </motion.div>
-            ))}
+          {projects && projects.length > 0 ? (
+            projects
+              .filter(p => !p.isHidden && p.isPinned)
+              .slice(0, 4)
+              .map((project) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <ProjectCard project={project} />
+                </motion.div>
+              ))
+          ) : (
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-500">No projects found. Add some projects to see them here.</p>
+            </div>
+          )}
         </div>
       </div>
     </section>
