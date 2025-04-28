@@ -1,22 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
-import type { IAllProps } from '@tinymce/tinymce-react';
-
-// Dynamic import for TinyMCE Editor with proper type casting
-const Editor = dynamic<IAllProps>(
-  () => import('@tinymce/tinymce-react').then((mod) => mod.Editor) as any,
-  {
-    loading: () => (
-      <div className="flex items-center justify-center h-[500px] border rounded-md">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    ),
-    ssr: false, // This is important - it prevents server-side rendering
-  }
-);
+import { useRef } from 'react';
+import { Editor } from '@tinymce/tinymce-react';
 
 export interface TinyEditorProps {
   value: string;
@@ -37,25 +22,9 @@ export function TinyEditor({
 
   // Default plugins and toolbar for full setup
   const fullPlugins = [
-    "advlist",
-    "autolink",
-    "lists",
-    "link",
-    "image",
-    "charmap",
-    "preview",
-    "anchor",
-    "searchreplace",
-    "visualblocks",
-    "code",
-    "fullscreen",
-    "insertdatetime",
-    "media",
-    "table",
-    "code",
-    "help",
-    "wordcount",
-    "codesample",
+    "advlist", "autolink", "lists", "link", "image", "charmap", "preview",
+    "anchor", "searchreplace", "visualblocks", "code", "fullscreen",
+    "insertdatetime", "media", "table", "help", "wordcount", "codesample"
   ];
 
   const fullToolbar =
@@ -82,31 +51,27 @@ export function TinyEditor({
   const toolbar = minimalSetup ? minimalToolbar : fullToolbar;
   const menubar = !minimalSetup;
 
-  // Base configuration
-  const editorConfig: any = {
-    height,
-    menubar,
-    plugins,
-    toolbar,
-    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-  };
-
-  // Add image upload handler if provided
-  if (imagesUploadHandler && !minimalSetup) {
-    editorConfig.images_upload_handler = async (blobInfo: any) => {
-      try {
-        return await imagesUploadHandler(blobInfo);
-      } catch (error) {
-        console.error("Editor image upload error:", error);
-        throw new Error("Failed to upload image");
-      }
-    };
-  }
-
   return (
     <Editor
+      apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
       onInit={(_, editor) => editorRef.current = editor}
-      init={editorConfig}
+      init={{
+        height,
+        menubar,
+        plugins,
+        toolbar,
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        ...(imagesUploadHandler && !minimalSetup ? {
+          images_upload_handler: async (blobInfo: any, _progress: any) => {
+            try {
+              return await imagesUploadHandler(blobInfo);
+            } catch (error) {
+              console.error("Editor image upload error:", error);
+              throw new Error("Failed to upload image");
+            }
+          }
+        } : {})
+      }}
       onEditorChange={onEditorChange}
       value={value}
     />

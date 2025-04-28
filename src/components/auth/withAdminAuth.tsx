@@ -12,6 +12,10 @@ export function withAdminAuth<P extends object>(
     const { isAuthenticated, isAdmin } = useAuthStore();
 
     useEffect(() => {
+      // DEVELOPMENT MODE: Bỏ qua kiểm tra xác thực
+      console.log("withAdminAuth - DEVELOPMENT MODE: Authentication bypassed");
+
+      /* PRODUCTION MODE: Uncomment code below when ready for production
       if (!isAuthenticated) {
         router.push('/login');
         return;
@@ -20,13 +24,19 @@ export function withAdminAuth<P extends object>(
       if (!isAdmin()) {
         router.push('/');
       }
-    }, [isAuthenticated, router]);
+      */
+    }, [isAuthenticated, router, isAdmin]);
 
+    // DEVELOPMENT MODE: Luôn render component bất kể trạng thái xác thực
+    return <WrappedComponent {...props} />;
+
+    /* PRODUCTION MODE: Uncomment code below when ready for production
     // Nếu không phải admin, không render component
     if (!isAdmin()) {
       return null;
     }
 
     return <WrappedComponent {...props} />;
+    */
   };
-} 
+}

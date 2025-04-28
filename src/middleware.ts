@@ -7,12 +7,17 @@ interface JWTPayload {
 }
 
 export async function middleware(request: NextRequest) {
-  console.log("middleware");
+  console.log("middleware - DEVELOPMENT MODE: Authentication bypassed");
+
+  // DEVELOPMENT MODE: Bỏ qua xác thực, cho phép truy cập tất cả các trang
+  return NextResponse.next();
+
+  /* PRODUCTION MODE: Uncomment code below when ready for production
   if (request.nextUrl.pathname.startsWith('/admin')) {
     try {
       // Lấy access token từ cookie
       const accessToken = request.cookies.get("accessToken")?.value;
-      
+
       if (!accessToken) {
         return NextResponse.redirect(new URL('/login', request.url));
       }
@@ -37,9 +42,10 @@ export async function middleware(request: NextRequest) {
 
   // Cho phép các route khác đi qua
   return NextResponse.next();
+  */
 }
 
 // Chỉ áp dụng middleware cho các route /admin
 export const config = {
   matcher: '/admin/:path*',
-}; 
+};

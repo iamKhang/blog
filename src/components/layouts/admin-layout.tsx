@@ -20,6 +20,13 @@ export default function AdminLayout({
   }, []);
 
   useEffect(() => {
+    // Đánh dấu đã hydrate
+    setIsHydrated(true);
+
+    // DEVELOPMENT MODE: Bỏ qua kiểm tra xác thực
+    console.log("AdminLayout - DEVELOPMENT MODE: Authentication bypassed");
+
+    /* PRODUCTION MODE: Uncomment code below when ready for production
     // Chỉ kiểm tra sau khi đã hydrate
     if (!isHydrated) return;
 
@@ -31,6 +38,7 @@ export default function AdminLayout({
     if (!isAdmin()) {
       router.push('/');
     }
+    */
   }, [isAuthenticated, router, isAdmin, isHydrated]);
 
   // Không render gì cho đến khi hydrate xong
@@ -38,6 +46,17 @@ export default function AdminLayout({
     return null;
   }
 
+  // DEVELOPMENT MODE: Luôn render layout bất kể trạng thái xác thực
+  return (
+    <div className="flex h-screen bg-gray-100">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto p-8">
+        {children}
+      </main>
+    </div>
+  );
+
+  /* PRODUCTION MODE: Uncomment code below when ready for production
   // Nếu đã hydrate và có quyền admin thì render layout
   if (isAuthenticated && isAdmin()) {
     return (
@@ -52,4 +71,5 @@ export default function AdminLayout({
 
   // Trong quá trình chuyển hướng, không render gì
   return null;
-} 
+  */
+}
