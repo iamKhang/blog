@@ -217,12 +217,8 @@ export default function AddPostPage() {
           .getPublicUrl(`post-images/${coverImage.name}`).data.publicUrl;
       }
 
-      const slug = slugify(data.title, {
-        lower: true,
-        strict: true,
-        locale: "vi",
-        trim: true,
-      });
+      // Use the slugify function with just the title
+      const slug = slugify(data.title);
 
       const response = await fetch("/api/posts", {
         method: "POST",

@@ -46,11 +46,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    
-    const slug = slugify(data.title, {
-      lower: true,
-      strict: true,
-    });
+
+    // Use the slugify function with just the title
+    const slug = slugify(data.title);
 
     const project = await prisma.project.create({
       data: {
@@ -65,9 +63,7 @@ export async function POST(request: Request) {
         docsUrl: data.docsUrl,
         isPinned: data.isPinned || false,
         isHidden: data.isHidden || false,
-        technologies: {
-          connect: data.technologies.map((id: string) => ({ id }))
-        }
+        technologyIds: data.technologies
       },
     });
 
@@ -79,4 +75,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

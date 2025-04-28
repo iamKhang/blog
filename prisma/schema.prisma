@@ -6,19 +6,19 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // hoặc "mysql" tùy theo database bạn chọn
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 // Model User để quản lý người dùng và xác thực
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   email         String    @unique
   password      String
   role          Role      @default(USER)
   avatar        String?
-  bio           String?   @db.Text
+  bio           String?
   dob           DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -30,32 +30,35 @@ enum Role {
 }
 
 model Post {
-  id          String    @id @default(cuid())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   slug        String    @unique
-  content     String    @db.Text
-  excerpt     String    @db.Text
+  content     String
+  excerpt     String
   coverImage  String?
   published   Boolean   @default(false)
   isPinned    Boolean   @default(false)
   isHidden    Boolean   @default(false)
   views       Int       @default(0)
   likes       Int       @default(0)
-  authorId    String
-  categories  Category[]
-  tags        Tag[]
+  authorId    String    @db.ObjectId
+  categories  Category[] @relation(fields: [categoryIds], references: [id])
+  categoryIds String[]  @db.ObjectId
+  tags        Tag[]     @relation(fields: [tagIds], references: [id])
+  tagIds      String[]  @db.ObjectId
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
 model Project {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   title         String
   slug          String    @unique
-  excerpt     String    @db.Text
-  description   String    @db.Text
+  excerpt       String
+  description   String
   thumbnail     String
-  technologies  Technology[] @relation("ProjectTechnologies")
+  technologies  Technology[] @relation(fields: [technologyIds], references: [id])
+  technologyIds String[]  @db.ObjectId
   status        ProjectStatus
   githubUrl     String?
   demoUrl       String?
@@ -78,35 +81,38 @@ enum ProjectStatus {
 
 // Models phụ trợ
 model Category {
-  id        String    @id @default(cuid())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String    @unique
-  posts     Post[]
+  posts     Post[]    @relation(fields: [postIds], references: [id])
+  postIds   String[]  @db.ObjectId
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
 model Tag {
-  id        String    @id @default(cuid())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String    @unique
-  posts     Post[]
+  posts     Post[]    @relation(fields: [postIds], references: [id])
+  postIds   String[]  @db.ObjectId
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
 model Technology {
-  id        String    @id @default(cuid())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String    @unique
   url       String
-  projects  Project[] @relation("ProjectTechnologies")
+  projects  Project[] @relation(fields: [projectIds], references: [id])
+  projectIds String[] @db.ObjectId
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
   refreshToken String   @unique
   userAgent    String?
-  ipAddress    String? 
+  ipAddress    String?
   isValid      Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-} 
+}
