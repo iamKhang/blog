@@ -26,6 +26,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Category, Tag } from "@prisma/client";
 import { TinyEditor } from "@/components/TinyEditor";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
   params: {
@@ -42,6 +49,8 @@ const formSchema = z.object({
   isHidden: z.boolean().default(false),
   categories: z.array(z.string()).min(1, "Select at least one category"),
   tags: z.array(z.string()),
+  seriesId: z.string().nullable(),
+  orderInSeries: z.number().int().nullable(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -78,6 +87,16 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     },
   });
 
+  // Fetch series data
+  const { data: seriesData = { series: [] } } = useQuery({
+    queryKey: ["series"],
+    queryFn: async () => {
+      const response = await fetch("/api/series?includeInactive=false");
+      if (!response.ok) throw new Error("Failed to fetch series");
+      return response.json();
+    },
+  });
+
   // Set form values when post data is loaded
   useEffect(() => {
     if (post) {
@@ -94,6 +113,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         "tags",
         post.tags.map((tag: Tag) => tag.id)
       );
+      setValue("seriesId", post.seriesId);
+      setValue("orderInSeries", post.orderInSeries);
       if (post.coverImage) {
         setCoverImagePreview(post.coverImage);
       }
@@ -421,6 +442,60 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                   );
                 }}
               />
+            </div>
+
+            {/* Series Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="seriesId">Series (Optional)</Label>
+              <Controller
+                name="seriesId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={(value) => {
+                      field.onChange(value === "" ? null : value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a series (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {seriesData.series.map((series: any) => (
+                        <SelectItem key={series.id} value={series.id}>
+                          {series.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            {/* Order in Series */}
+            <div className="space-y-2">
+              <Label htmlFor="orderInSeries">Order in Series (Optional)</Label>
+              <Controller
+                name="orderInSeries"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    type="number"
+                    min="1"
+                    placeholder="Enter order number"
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === "" ? null : parseInt(value, 10));
+                    }}
+                    disabled={!field.value}
+                  />
+                )}
+              />
+              <p className="text-sm text-gray-500">
+                Leave empty if not part of a series
+              </p>
             </div>
 
             {/* Post Settings */}

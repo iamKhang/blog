@@ -28,6 +28,27 @@ export async function GET(request: Request, { params }: Props) {
             id: true,
             name: true
           }
+        },
+        series: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            posts: {
+              where: {
+                isHidden: false
+              },
+              orderBy: {
+                orderInSeries: "asc"
+              },
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                orderInSeries: true
+              }
+            }
+          }
         }
       },
     });
@@ -94,4 +115,4 @@ export async function PATCH(request: Request, { params }: Props) {
       { status: 500 }
     );
   }
-} 
+}

@@ -18,6 +18,8 @@ const PostUpdateSchema = z.object({
   isHidden: z.boolean().default(false),
   categories: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  seriesId: z.string().nullable(),
+  orderInSeries: z.number().int().nullable(),
   slug: z.string(),
 });
 
@@ -38,6 +40,13 @@ export async function GET(request: Request, { params }: Props) {
           select: {
             id: true,
             name: true,
+          },
+        },
+        series: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
           },
         },
       },
@@ -112,10 +121,13 @@ export async function PATCH(request: Request, { params }: Props) {
         tags: {
           set: validatedData.tags?.map((id) => ({ id })) || [],
         },
+        seriesId: validatedData.seriesId,
+        orderInSeries: validatedData.orderInSeries,
       },
       include: {
         categories: true,
         tags: true,
+        series: true,
       },
     });
 
@@ -135,4 +147,4 @@ export async function PATCH(request: Request, { params }: Props) {
       { status: 500 }
     );
   }
-} 
+}

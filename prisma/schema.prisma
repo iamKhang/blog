@@ -46,6 +46,9 @@ model Post {
   categoryIds String[]  @db.ObjectId
   tags        Tag[]     @relation(fields: [tagIds], references: [id])
   tagIds      String[]  @db.ObjectId
+  series      Series?   @relation(fields: [seriesId], references: [id])
+  seriesId    String?   @db.ObjectId
+  orderInSeries Int?    // Position of the post in the series (null if not part of a series)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -104,6 +107,18 @@ model Technology {
   url       String
   projects  Project[] @relation(fields: [projectIds], references: [id])
   projectIds String[] @db.ObjectId
+}
+
+model Series {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String    @unique
+  description String
+  coverImage  String?
+  isActive    Boolean   @default(true)
+  posts       Post[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Session {

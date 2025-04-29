@@ -1,6 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Admin layout styles */
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  background-color: #f3f4f6 !important;
+}
+
+/* Override container styles for admin pages */
+body > main > div.container {
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Hide header and footer on admin pages */
+body > header,
+body > footer {
+  display: none !important;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;

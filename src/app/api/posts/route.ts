@@ -46,6 +46,15 @@ export async function GET(request: Request) {
       ],
     };
 
+    const seriesId = searchParams.get("seriesId");
+
+    // Add series filter if provided
+    if (seriesId) {
+      where.AND.push({
+        seriesId: seriesId,
+      });
+    }
+
     const [posts, total] = await Promise.all([
       prisma.post.findMany({
         where: where as Prisma.PostWhereInput,
@@ -62,8 +71,17 @@ export async function GET(request: Request) {
               name: true,
             },
           },
+          series: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
         },
-        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+        orderBy: seriesId
+          ? [{ orderInSeries: "asc" }]
+          : [{ isPinned: "desc" }, { createdAt: "desc" }],
         skip,
         take: limit,
       }),
@@ -111,6 +129,8 @@ const PostCreateSchema = z.object({
   authorId: z.string().min(1, "Author ID is required"),
   categories: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  seriesId: z.string().optional(),
+  orderInSeries: z.number().int().optional(),
   slug: z.string(), // Slug sẽ được tạo tự động từ title
 });
 
@@ -155,10 +175,13 @@ export async function POST(request: Request) {
               })),
             }
           : undefined,
+        seriesId: validatedData.seriesId || null,
+        orderInSeries: validatedData.orderInSeries || null,
       },
       include: {
         categories: true,
         tags: true,
+        series: true,
       },
     });
 

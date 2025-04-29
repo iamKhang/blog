@@ -10,8 +10,11 @@ import {
   Users,
   Settings,
   LogOut,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const menuItems = [
   {
@@ -23,6 +26,11 @@ const menuItems = [
     title: "Bài viết",
     href: "/admin/posts",
     icon: FileText,
+  },
+  {
+    title: "Series",
+    href: "/admin/series",
+    icon: BookOpen,
   },
   {
     title: "Dự án",
@@ -52,55 +60,52 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-white border-r h-screen flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b">
-        <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
-        <div className="mt-4 flex items-center">
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-            {user?.name?.charAt(0)}
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-700">{user?.name}</p>
-            <p className="text-xs text-gray-500">{user?.email}</p>
-          </div>
-        </div>
-      </div>
-      
+    <div className="w-64 bg-gradient-to-b from-blue-900 to-blue-950 text-white h-full flex flex-col shadow-lg">
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors",
-                isActive
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              )}
-            >
-              <Icon className={cn("w-5 h-5", isActive && "text-blue-700")} />
-              <span className="font-medium">{item.title}</span>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-transparent">
+        <div className="px-3 mb-4">
+          <p className="text-xs uppercase text-blue-400 font-semibold tracking-wider px-4">Menu</p>
+        </div>
+        <ul className="space-y-1 px-3">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200",
+                    isActive
+                      ? "bg-blue-700 text-white font-medium"
+                      : "text-blue-300 hover:bg-blue-800/50 hover:text-white"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={cn("w-5 h-5")} />
+                    <span className="font-medium">{item.title}</span>
+                  </div>
+                  {isActive && <ChevronRight className="w-4 h-4" />}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-blue-800">
         <button
           onClick={handleLogout}
-          className="flex items-center space-x-3 px-4 py-2.5 w-full rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+          className="flex items-center justify-between px-4 py-3 w-full rounded-lg text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors"
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">Đăng xuất</span>
+          <div className="flex items-center gap-3">
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Đăng xuất</span>
+          </div>
         </button>
       </div>
     </div>
   );
-} 
+}

@@ -53,6 +53,8 @@ const formSchema = z.object({
   isHidden: z.boolean().default(false),
   categories: z.array(z.string()).min(1, "Select at least one category"),
   tags: z.array(z.string()),
+  seriesId: z.string().optional(),
+  orderInSeries: z.number().int().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -66,6 +68,12 @@ const fetchCategories = async () => {
 const fetchTags = async () => {
   const response = await fetch("/api/tags");
   if (!response.ok) throw new Error("Failed to fetch tags");
+  return response.json();
+};
+
+const fetchSeries = async () => {
+  const response = await fetch("/api/series?includeInactive=false");
+  if (!response.ok) throw new Error("Failed to fetch series");
   return response.json();
 };
 
@@ -169,6 +177,11 @@ export default function AddPostPage() {
   const { data: tags = [] } = useQuery({
     queryKey: ["tags"],
     queryFn: fetchTags,
+  });
+
+  const { data: seriesData = { series: [] } } = useQuery({
+    queryKey: ["series"],
+    queryFn: fetchSeries,
   });
 
   const createCategoryMutation = useMutation({
@@ -699,6 +712,60 @@ export default function AddPostPage() {
               {errors.tags && (
                 <p className="text-sm text-red-500">{errors.tags.message}</p>
               )}
+            </div>
+
+            {/* Series Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="seriesId">Series (Optional)</Label>
+              <Controller
+                name="seriesId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={(value) => {
+                      field.onChange(value === "" ? undefined : value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a series (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {seriesData.series.map((series: any) => (
+                        <SelectItem key={series.id} value={series.id}>
+                          {series.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            {/* Order in Series */}
+            <div className="space-y-2">
+              <Label htmlFor="orderInSeries">Order in Series (Optional)</Label>
+              <Controller
+                name="orderInSeries"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    type="number"
+                    min="1"
+                    placeholder="Enter order number"
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === "" ? undefined : parseInt(value, 10));
+                    }}
+                    disabled={!field.value}
+                  />
+                )}
+              />
+              <p className="text-sm text-gray-500">
+                Leave empty if not part of a series
+              </p>
             </div>
 
             {/* Post Settings */}
