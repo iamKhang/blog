@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyRefreshToken, generateTokens } from "@/lib/jwt";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // Lấy refresh token từ cookie
     const refreshToken = request.cookies.get("refreshToken")?.value;
@@ -28,9 +29,9 @@ export async function POST(request: Request) {
       where: {
         refreshToken,
         isValid: true,
-      },
-      include: {
-        user: true,
+        expiresAt: {
+          gt: new Date() // Chỉ lấy session chưa hết hạn
+        }
       },
     });
 
@@ -47,8 +48,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // Fetch user
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Không tìm thấy người dùng" },
+        { status: 401 }
+      );
+    }
+
     // Tạo tokens mới
-    const tokens = generateTokens(session.user);
+    const tokens = generateTokens(user);
 
     // Vô hiệu hóa session cũ
     await prisma.session.update({
@@ -56,7 +69,10 @@ export async function POST(request: Request) {
       data: { isValid: false },
     });
 
-    // Tạo session mới
+    // Tạo session mới với thời gian hết hạn
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Hết hạn sau 7 ngày
+
     await prisma.session.create({
       data: {
         userId: session.userId,
@@ -64,10 +80,11 @@ export async function POST(request: Request) {
         userAgent: request.headers.get("user-agent") || undefined,
         ipAddress: request.headers.get("x-forwarded-for") || undefined,
         isValid: true,
+        expiresAt,
       },
     });
 
-    const { password: _, ...userWithoutPassword } = session.user;
+    const { password: _, ...userWithoutPassword } = user as { password: string; [key: string]: any };
 
     return NextResponse.json(
       {

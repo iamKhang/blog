@@ -1,44 +1,48 @@
 import jwt from "jsonwebtoken"; // npm install jsonwebtoken
 import { User } from "@prisma/client";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const ACCESS_TOKEN_EXPIRES_IN = '15m';
-const REFRESH_TOKEN_EXPIRES_IN = '7d';
+const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET || 'your-access-token-secret';
+const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-token-secret';
 
-export function generateTokens(user: User) {
-  const payload = {
-    userId: user.id,
+interface TokenPayload {
+  id: string;
+  email: string;
+  role: string;
+  exp?: number;
+}
+
+export const generateTokens = (user: User) => {
+  const payload: TokenPayload = {
+    id: user.id,
     email: user.email,
     role: user.role,
   };
 
-  const accessToken = jwt.sign(
-    payload,
-    JWT_SECRET,
-    { expiresIn: ACCESS_TOKEN_EXPIRES_IN }
-  );
+  // Access token hết hạn sau 15 phút
+  const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, {
+    expiresIn: '15m',
+  });
 
-  const refreshToken = jwt.sign(
-    payload,
-    JWT_SECRET,
-    { expiresIn: REFRESH_TOKEN_EXPIRES_IN }
-  );
+  // Refresh token hết hạn sau 7 ngày
+  const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+    expiresIn: '7d',
+  });
 
   return { accessToken, refreshToken };
-}
+};
 
-export function verifyAccessToken(token: string) {
+export const verifyAccessToken = (token: string) => {
   try {
-    return jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
+    return jwt.verify(token, ACCESS_TOKEN_SECRET) as TokenPayload;
   } catch (error) {
     return null;
   }
-}
+};
 
-export function verifyRefreshToken(token: string) {
+export const verifyRefreshToken = (token: string) => {
   try {
-    return jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
+    return jwt.verify(token, REFRESH_TOKEN_SECRET) as TokenPayload;
   } catch (error) {
     return null;
   }
-} 
+}; 

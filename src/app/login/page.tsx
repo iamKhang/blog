@@ -14,12 +14,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, clearError, isAdmin } = useAuthStore();
+  const { login, isLoading, error, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -44,13 +44,7 @@ export default function LoginPage() {
         title: "Đăng nhập thành công",
         description: "Chào mừng bạn trở lại!",
       });
-      
-      // Kiểm tra role và điều hướng
-      if (isAdmin()) {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/"); // hoặc trang mặc định cho user thường
-      }
+      router.push("/");
     } catch (error) {
       toast({
         title: "Đăng nhập thất bại",

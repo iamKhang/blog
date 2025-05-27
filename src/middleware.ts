@@ -3,49 +3,117 @@ import type { NextRequest } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
 interface JWTPayload {
+  exp: number;
   role?: string;
 }
 
 export async function middleware(request: NextRequest) {
-  console.log("middleware - DEVELOPMENT MODE: Authentication bypassed");
+  const accessToken = request.cookies.get('accessToken')
+  const refreshToken = request.cookies.get('refreshToken')
 
-  // DEVELOPMENT MODE: Bỏ qua xác thực, cho phép truy cập tất cả các trang
-  return NextResponse.next();
-
-  /* PRODUCTION MODE: Uncomment code below when ready for production
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  // Nếu không có access token nhưng có refresh token, thử refresh
+  if (!accessToken && refreshToken) {
     try {
-      // Lấy access token từ cookie
-      const accessToken = request.cookies.get("accessToken")?.value;
+      const response = await fetch(`${request.nextUrl.origin}/api/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Cookie': `refreshToken=${refreshToken.value}`,
+        },
+      })
 
-      if (!accessToken) {
-        return NextResponse.redirect(new URL('/login', request.url));
+      if (response.ok) {
+        const data = await response.json()
+        const res = NextResponse.next()
+        
+        // Set new access token
+        res.cookies.set({
+          name: 'accessToken',
+          value: data.accessToken,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 15 * 60, // 15 minutes
+        })
+
+        return res
+      } else {
+        // Nếu refresh thất bại, xóa cookies và chuyển về trang login
+        const res = NextResponse.redirect(new URL('/login', request.url))
+        res.cookies.delete('accessToken')
+        res.cookies.delete('refreshToken')
+        return res
       }
-
-      // Decode token với kiểu được chỉ định
-      const decoded = jwtDecode<JWTPayload>(accessToken);
-      console.log('decoded token:', decoded);
-      // Kiểm tra role từ payload
-      if (decoded?.role !== 'ADMIN') {
-        console.log('User role:', decoded?.role);
-        return NextResponse.redirect(new URL('/', request.url));
-      }
-
-      // Nếu là ADMIN, cho phép tiếp tục
-      return NextResponse.next();
-
     } catch (error) {
-      console.log('Middleware error:', error);
-      return NextResponse.redirect(new URL('/login', request.url));
+      console.error('Token refresh failed:', error)
+      // Xóa cookies và chuyển về trang login
+      const res = NextResponse.redirect(new URL('/login', request.url))
+      res.cookies.delete('accessToken')
+      res.cookies.delete('refreshToken')
+      return res
     }
   }
 
-  // Cho phép các route khác đi qua
-  return NextResponse.next();
-  */
+  // Nếu có access token, kiểm tra hết hạn
+  if (accessToken) {
+    try {
+      const decoded = jwtDecode<JWTPayload>(accessToken.value)
+      const currentTime = Math.floor(Date.now() / 1000)
+
+      // Nếu token hết hạn và có refresh token, thử refresh
+      if (decoded.exp < currentTime && refreshToken) {
+        const response = await fetch(`${request.nextUrl.origin}/api/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Cookie': `refreshToken=${refreshToken.value}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const res = NextResponse.next()
+          
+          res.cookies.set({
+            name: 'accessToken',
+            value: data.accessToken,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 15 * 60,
+          })
+
+          return res
+        } else {
+          // Nếu refresh thất bại, xóa cookies và chuyển về trang login
+          const res = NextResponse.redirect(new URL('/login', request.url))
+          res.cookies.delete('accessToken')
+          res.cookies.delete('refreshToken')
+          return res
+        }
+      }
+    } catch (error) {
+      console.error('Token validation failed:', error)
+      // Xóa cookies và chuyển về trang login
+      const res = NextResponse.redirect(new URL('/login', request.url))
+      res.cookies.delete('accessToken')
+      res.cookies.delete('refreshToken')
+      return res
+    }
+  }
+
+  return NextResponse.next()
 }
 
-// Chỉ áp dụng middleware cho các route /admin
+// Chỉ áp dụng middleware cho các route cần bảo vệ
 export const config = {
-  matcher: '/admin/:path*',
-};
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - login, register (public routes)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|login|register).*)',
+  ],
+}

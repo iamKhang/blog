@@ -21,8 +21,11 @@ model User {
   bio           String?
   dob           DateTime?
   posts         Post[]    // Thêm relation với Post
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  sessions      Session[] // Thêm relation với Session
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
 }
 
 enum Role {
@@ -36,22 +39,22 @@ model Post {
   slug        String    @unique
   content     String
   excerpt     String
-  coverImage  String?
-  published   Boolean   @default(false)
-  isPinned    Boolean   @default(false)
-  isHidden    Boolean   @default(false)
-  views       Int       @default(0)
-  likes       Int       @default(0)
-  authorId    String    @db.ObjectId
+  coverImage  String?   @map("cover_image")
+  published   Boolean   @default(false) @map("published")
+  isPinned    Boolean   @default(false) @map("is_pinned")
+  isHidden    Boolean   @default(false) @map("is_hidden")
+  views       Int       @default(0) @map("views")
+  likes       Int       @default(0) @map("likes")
+  authorId    String    @db.ObjectId @map("author_id")
   author      User      @relation(fields: [authorId], references: [id])
   categories  Category[] @relation(fields: [categoryIds], references: [id])
-  categoryIds String[]  @db.ObjectId
+  categoryIds String[]  @db.ObjectId @map("category_ids")
   tags        String[]
   series      Series?   @relation(fields: [seriesId], references: [id])
-  seriesId    String?   @db.ObjectId
+  seriesId    String?   @db.ObjectId @map("series_id")        
   orderInSeries Int?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 }
 
 model Project {
@@ -61,47 +64,52 @@ model Project {
   excerpt       String
   description   String
   thumbnail     String
-  techStack     String[]
-  status        Boolean   @default(false)
-  githubUrl     String[]
-  demoUrl       String?
-  docsUrl       String?
-  views         Int       @default(0)
-  likes         Int       @default(0)
-  isPinned      Boolean   @default(false)
-  isHidden      Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  techStack     String[]  @map("tech_stack")
+  status        Boolean   @default(false) @map("status")
+  githubUrl     String[]  @map("github_url")
+  demoUrl       String?   @map("demo_url")
+  docsUrl       String?   @map("docs_url")
+  views         Int       @default(0) @map("views")
+  likes         Int       @default(0) @map("likes")
+  isPinned      Boolean   @default(false) @map("is_pinned")
+  isHidden      Boolean   @default(false) @map("is_hidden")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 }
 
 model Category {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String    @unique
   posts     Post[]    @relation(fields: [postIds], references: [id])
-  postIds   String[]  @db.ObjectId
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  postIds   String[]  @db.ObjectId @map("post_ids")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 }
 
 model Series {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
+  title       String    @map("title")
   slug        String    @unique
-  description String
-  coverImage  String?
-  isActive    Boolean   @default(true)
+  description String    @map("description")
+  coverImage  String?   @map("cover_image")
+  isActive    Boolean   @default(true) @map("is_active")
   posts       Post[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 }
 
 model Session {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String   @db.ObjectId
-  refreshToken String   @unique
-  userAgent    String?
-  ipAddress    String?
-  isValid      Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  userId       String   @db.ObjectId @map("user_id")
+  refreshToken String   @map("refresh_token")
+  userAgent    String?  @map("user_agent")
+  ipAddress    String?  @map("ip_address")
+  isValid      Boolean  @default(true) @map("is_valid")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@map("sessions")
+  @@index([expiresAt])
 }

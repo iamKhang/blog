@@ -108,9 +108,7 @@ export default function RegistrationPage() {
         description: "Registration successful! Redirecting...",
       })
 
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1500)
+      router.push('/')
 
     } catch (error) {
       console.error('Registration error:', error)
