@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 interface Props {
@@ -16,7 +16,7 @@ const PostUpdateSchema = z.object({
   coverImage: z.string().optional(),
   isPinned: z.boolean().default(false),
   isHidden: z.boolean().default(false),
-  categories: z.array(z.string()).optional(),
+  categoryIds: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   seriesId: z.string().nullable(),
   orderInSeries: z.number().int().nullable(),
@@ -26,44 +26,31 @@ const PostUpdateSchema = z.object({
 export async function GET(request: Request, { params }: Props) {
   try {
     const post = await prisma.post.findUnique({
-      where: {
-        id: params.id,
-      },
+      where: { id: params.id },
       include: {
-        categories: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        tags: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        series: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
+        categories: true,
+        series: true,
       },
     });
 
     if (!post) {
       return NextResponse.json(
-        { message: "Post not found" },
+        { error: "Post not found" },
         { status: 404 }
       );
     }
 
+    // Increment view count
+    await prisma.post.update({
+      where: { id: params.id },
+      data: { views: { increment: 1 } },
+    });
+
     return NextResponse.json(post);
   } catch (error) {
-    console.error("[POST_GET]", error);
+    console.error("Error fetching post:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -115,18 +102,13 @@ export async function PATCH(request: Request, { params }: Props) {
         coverImage: validatedData.coverImage,
         isPinned: validatedData.isPinned,
         isHidden: validatedData.isHidden,
-        categories: {
-          set: validatedData.categories?.map((id) => ({ id })) || [],
-        },
-        tags: {
-          set: validatedData.tags?.map((id) => ({ id })) || [],
-        },
+        categoryIds: validatedData.categoryIds || [],
+        tags: validatedData.tags || [],
         seriesId: validatedData.seriesId,
         orderInSeries: validatedData.orderInSeries,
       },
       include: {
         categories: true,
-        tags: true,
         series: true,
       },
     });

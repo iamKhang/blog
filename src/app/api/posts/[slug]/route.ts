@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 interface Props {
   params: {
@@ -7,67 +7,37 @@ interface Props {
   };
 }
 
-export async function GET(request: Request, { params }: Props) {
+export async function GET(
+  request: Request,
+  { params }: { params: { slug: string } }
+) {
   try {
     const post = await prisma.post.findUnique({
-      where: {
-        slug: params.slug,
-        AND: [
-          { isHidden: false }
-        ]
-      },
+      where: { slug: params.slug },
       include: {
-        categories: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        tags: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        series: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            posts: {
-              where: {
-                isHidden: false
-              },
-              orderBy: {
-                orderInSeries: "asc"
-              },
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                orderInSeries: true
-              }
-            }
-          }
-        }
+        categories: true,
+        series: true,
       },
     });
 
     if (!post) {
-      return new NextResponse("Post not found", { status: 404 });
+      return NextResponse.json(
+        { error: "Post not found" },
+        { status: 404 }
+      );
     }
 
-    // Tăng view count
+    // Increment view count
     await prisma.post.update({
-      where: { id: post.id },
+      where: { slug: params.slug },
       data: { views: { increment: 1 } },
     });
 
     return NextResponse.json(post);
   } catch (error) {
-    console.error("[POST_GET]", error);
+    console.error("Error fetching post:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -98,12 +68,12 @@ export async function PATCH(request: Request, { params }: Props) {
         coverImage: body.coverImage,
         isPinned: body.isPinned,
         isHidden: body.isHidden,
-        categories: {
-          set: body.categories?.map((id: string) => ({ id })),
-        },
-        tags: {
-          set: body.tags?.map((id: string) => ({ id })),
-        },
+        categoryIds: body.categoryIds || [],
+        tags: body.tags || [],
+      },
+      include: {
+        categories: true,
+        series: true,
       },
     });
 

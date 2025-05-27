@@ -1,206 +1,190 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
 
-// GET /api/posts - Lấy danh sách posts có phân trang
+// GET /api/posts - Get all posts with pagination and filters
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
-    const categoryId = searchParams.get("categoryId");
-    const tagId = searchParams.get("tagId");
+    const category = searchParams.get("category") || "";
+    const tag = searchParams.get("tag") || "";
+    const published = searchParams.get("published") || "true";
 
     const skip = (page - 1) * limit;
 
-    // Xây dựng điều kiện tìm kiếm
-    const where = {
+    const where: Prisma.PostWhereInput = {
       AND: [
-        {
+        search ? {
           OR: [
-            { title: { contains: search, mode: "insensitive" } },
-            { excerpt: { contains: search, mode: "insensitive" } },
+            { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { content: { contains: search, mode: Prisma.QueryMode.insensitive } },
           ],
-        },
-        categoryId
-          ? {
-              categories: {
-                some: {
-                  id: categoryId,
-                },
-              },
-            }
-          : {},
-        tagId
-          ? {
-              tags: {
-                some: {
-                  id: tagId,
-                },
-              },
-            }
-          : {},
-        { isHidden: false },
+        } : {},
+        category ? { categoryIds: { has: category } } : {},
+        tag ? { tags: { has: tag } } : {},
+        { published: published === "true" },
       ],
     };
 
-    const seriesId = searchParams.get("seriesId");
-
-    // Add series filter if provided
-    if (seriesId) {
-      where.AND.push({
-        seriesId: seriesId,
-      });
-    }
-
     const [posts, total] = await Promise.all([
       prisma.post.findMany({
-        where: where as Prisma.PostWhereInput,
-        include: {
-          categories: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          tags: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          series: {
-            select: {
-              id: true,
-              title: true,
-              slug: true,
-            },
-          },
-        },
-        orderBy: seriesId
-          ? [{ orderInSeries: "asc" }]
-          : [{ isPinned: "desc" }, { createdAt: "desc" }],
+        where,
         skip,
         take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          categories: true,
+          series: true,
+        },
       }),
-      prisma.post.count({ where: where as Prisma.PostWhereInput }),
+      prisma.post.count({ where }),
     ]);
-
-    // Tăng view count cho các bài viết được fetch
-    if (posts.length > 0) {
-      await Promise.all(
-        posts.map((post) =>
-          prisma.post.update({
-            where: { id: post.id },
-            data: { views: { increment: 1 } },
-          })
-        )
-      );
-    }
 
     return NextResponse.json({
       posts,
-      metadata: {
+      pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        pages: Math.ceil(total / limit),
+        current: page,
       },
     });
   } catch (error) {
-    console.error("[POSTS_GET]", error);
+    console.error("Error fetching posts:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
 }
 
-// Schema validation cho request body
-const PostCreateSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  content: z.string().min(1, "Content is required"),
-  excerpt: z.string().min(1, "Excerpt is required"),
-  coverImage: z.string().optional(),
-  isPinned: z.boolean().default(false),
-  isHidden: z.boolean().default(false),
-  authorId: z.string().min(1, "Author ID is required"),
-  categories: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
-  seriesId: z.string().optional(),
-  orderInSeries: z.number().int().optional(),
-  slug: z.string(), // Slug sẽ được tạo tự động từ title
-});
-
+// POST /api/posts - Create a new post
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const validatedData = PostCreateSchema.parse(body);
-
-    // Kiểm tra xem slug đã tồn tại chưa
-    const existingPost = await prisma.post.findUnique({
-      where: { slug: validatedData.slug },
-    });
-
-    if (existingPost) {
+    const session = await getServerSession(authOptions);
+    if (!session) {
       return NextResponse.json(
-        { message: "A post with this slug already exists" },
-        { status: 400 }
+        { error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
+    const body = await request.json();
+    const {
+      title,
+      slug,
+      content,
+      excerpt,
+      coverImage,
+      published,
+      categoryIds,
+      tags,
+      seriesId,
+      orderInSeries,
+    } = body;
+
     const post = await prisma.post.create({
       data: {
-        title: validatedData.title,
-        slug: validatedData.slug,
-        content: validatedData.content,
-        excerpt: validatedData.excerpt,
-        coverImage: validatedData.coverImage,
-        isPinned: validatedData.isPinned,
-        isHidden: validatedData.isHidden,
-        authorId: validatedData.authorId,
-        categories: validatedData.categories
-          ? {
-              connect: validatedData.categories.map((categoryId) => ({
-                id: categoryId,
-              })),
-            }
-          : undefined,
-        tags: validatedData.tags
-          ? {
-              connect: validatedData.tags.map((tagId) => ({
-                id: tagId,
-              })),
-            }
-          : undefined,
-        seriesId: validatedData.seriesId || null,
-        orderInSeries: validatedData.orderInSeries || null,
+        title,
+        slug,
+        content,
+        excerpt,
+        coverImage,
+        published,
+        categoryIds: categoryIds || [],
+        tags: tags || [],
+        seriesId,
+        orderInSeries,
+        authorId: session.user.id,
       },
       include: {
         categories: true,
-        tags: true,
+        series: true,
+        author: true,
+      },
+    });
+
+    return NextResponse.json(post);
+  } catch (error) {
+    console.error("Error creating post:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/posts - Update a post
+export async function PATCH(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { id, ...data } = body;
+
+    const post = await prisma.post.update({
+      where: { id },
+      data: {
+        ...data,
+        categoryIds: data.categoryIds || [],
+        tags: data.tags || [],
+      },
+      include: {
+        categories: true,
         series: true,
       },
     });
 
-    return NextResponse.json(
-      { message: "Post created successfully", post },
-      { status: 201 }
-    );
+    return NextResponse.json(post);
   } catch (error) {
-    console.error("POST ERROR:", error);
+    console.error("Error updating post:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
 
-    if (error instanceof z.ZodError) {
+// DELETE /api/posts - Delete a post
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
       return NextResponse.json(
-        { message: "Invalid request data", errors: error.errors },
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Post ID is required" },
         { status: 400 }
       );
     }
 
+    await prisma.post.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting post:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

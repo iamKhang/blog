@@ -20,6 +20,7 @@ model User {
   avatar        String?
   bio           String?
   dob           DateTime?
+  posts         Post[]    // Thêm relation với Post
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -41,6 +42,8 @@ model Post {
   isHidden    Boolean   @default(false)
   views       Int       @default(0)
   likes       Int       @default(0)
+  authorId    String    @db.ObjectId
+  author      User      @relation(fields: [authorId], references: [id])
   categories  Category[] @relation(fields: [categoryIds], references: [id])
   categoryIds String[]  @db.ObjectId
   tags        String[]
@@ -70,7 +73,6 @@ model Project {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
-
 
 model Category {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
