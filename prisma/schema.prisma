@@ -41,14 +41,12 @@ model Post {
   isHidden    Boolean   @default(false)
   views       Int       @default(0)
   likes       Int       @default(0)
-  authorId    String    @db.ObjectId
   categories  Category[] @relation(fields: [categoryIds], references: [id])
   categoryIds String[]  @db.ObjectId
-  tags        Tag[]     @relation(fields: [tagIds], references: [id])
-  tagIds      String[]  @db.ObjectId
+  tags        String[]
   series      Series?   @relation(fields: [seriesId], references: [id])
   seriesId    String?   @db.ObjectId
-  orderInSeries Int?    // Position of the post in the series (null if not part of a series)
+  orderInSeries Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -60,10 +58,9 @@ model Project {
   excerpt       String
   description   String
   thumbnail     String
-  technologies  Technology[] @relation(fields: [technologyIds], references: [id])
-  technologyIds String[]  @db.ObjectId
-  status        ProjectStatus
-  githubUrl     String?
+  techStack     String[]
+  status        Boolean   @default(false)
+  githubUrl     String[]
   demoUrl       String?
   docsUrl       String?
   views         Int       @default(0)
@@ -74,15 +71,7 @@ model Project {
   updatedAt     DateTime  @updatedAt
 }
 
-enum ProjectStatus {
-  COMPLETED
-  IN_PROGRESS
-  PLANNED
-}
 
-
-
-// Models phụ trợ
 model Category {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String    @unique
@@ -90,23 +79,6 @@ model Category {
   postIds   String[]  @db.ObjectId
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-}
-
-model Tag {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String    @unique
-  posts     Post[]    @relation(fields: [postIds], references: [id])
-  postIds   String[]  @db.ObjectId
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Technology {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String    @unique
-  url       String
-  projects  Project[] @relation(fields: [projectIds], references: [id])
-  projectIds String[] @db.ObjectId
 }
 
 model Series {
