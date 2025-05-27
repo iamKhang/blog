@@ -255,7 +255,7 @@ export default function AddPostPage() {
       if (coverImage) {
         const { data: uploadData, error } = await supabase.storage
           .from("post-images")
-          .upload(`post-images/${coverImage.name}`, coverImage);
+          .upload(`${coverImage.name}`, coverImage);
 
         if (error) {
           throw new Error("Error uploading image");
@@ -263,7 +263,7 @@ export default function AddPostPage() {
 
         imageUrl = supabase.storage
           .from("post-images")
-          .getPublicUrl(`post-images/${coverImage.name}`).data.publicUrl;
+          .getPublicUrl(`${coverImage.name}`).data.publicUrl;
       }
 
       // Use the slugify function with just the title
@@ -276,7 +276,7 @@ export default function AddPostPage() {
           ...data,
           slug,
           coverImage: imageUrl,
-          authorId: "your-user-id",
+          authorId: "68104903dcef03c0f4792468"
         }),
       });
 
@@ -724,14 +724,14 @@ export default function AddPostPage() {
                   <Select
                     value={field.value || ""}
                     onValueChange={(value) => {
-                      field.onChange(value === "" ? undefined : value);
+                      field.onChange(value === "none" ? undefined : value);
                     }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a series (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {seriesData.series.map((series: any) => (
                         <SelectItem key={series.id} value={series.id}>
                           {series.title}
