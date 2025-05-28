@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       where: { email: validatedData.email },
     });
 
+    console.log("Found user:", user ? "Yes" : "No");
     if (!user) {
       return NextResponse.json(
         { error: "Email hoặc mật khẩu không chính xác" },
@@ -27,10 +28,12 @@ export async function POST(request: Request) {
     }
 
     // Verify password
+    console.log("Comparing passwords...");
     const isValidPassword = await bcrypt.compare(
       validatedData.password,
       user.password
     );
+    console.log("Password valid:", isValidPassword);
 
     if (!isValidPassword) {
       return NextResponse.json(
@@ -61,6 +64,7 @@ export async function POST(request: Request) {
         userAgent: request.headers.get("user-agent") || undefined,
         ipAddress: request.headers.get("x-forwarded-for") || undefined,
         isValid: true,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       },
     });
 

@@ -47,14 +47,14 @@ model Post {
   likes       Int       @default(0) @map("likes")
   authorId    String    @db.ObjectId @map("author_id")
   author      User      @relation(fields: [authorId], references: [id])
-  categories  Category[] @relation(fields: [categoryIds], references: [id])
-  categoryIds String[]  @db.ObjectId @map("category_ids")
   tags        String[]
   series      Series?   @relation(fields: [seriesId], references: [id])
   seriesId    String?   @db.ObjectId @map("series_id")        
   orderInSeries Int?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("posts")
 }
 
 model Project {
@@ -75,15 +75,8 @@ model Project {
   isHidden      Boolean   @default(false) @map("is_hidden")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
-}
 
-model Category {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String    @unique
-  posts     Post[]    @relation(fields: [postIds], references: [id])
-  postIds   String[]  @db.ObjectId @map("post_ids")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  @@map("projects")
 }
 
 model Series {
@@ -96,6 +89,8 @@ model Series {
   posts       Post[]
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("series")
 }
 
 model Session {

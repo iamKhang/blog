@@ -19,6 +19,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, metadata?: any) => Promise<void>;
+  refreshToken: () => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
   isAdmin: () => boolean;
@@ -103,6 +104,37 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
           throw error;
+        }
+      },
+
+      refreshToken: async () => {
+        try {
+          const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            credentials: 'include',
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to refresh token');
+          }
+
+          const data = await response.json();
+
+          set({
+            user: data.user,
+            accessToken: data.accessToken,
+            isAuthenticated: true,
+          });
+
+          return true;
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+          set({
+            user: null,
+            accessToken: null,
+            isAuthenticated: false,
+          });
+          return false;
         }
       },
 

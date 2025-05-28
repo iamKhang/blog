@@ -68,20 +68,24 @@ export default function AddSeriesPage() {
 
   const handleImageUpload = async (file: File): Promise<string> => {
     try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${file.name}`;
+      const filePath = `series-images/${fileName}`;
+
       const { data, error } = await uploadFile(
         "series-images",
-        `series-images/${Date.now()}-${file.name}`,
+        filePath,
         file
       );
 
-      if (error) {
-        throw new Error("Error uploading image");
+      if (error || !data?.publicUrl) {
+        throw new Error(error?.message || "Error uploading image");
       }
 
       return data.publicUrl;
-    } catch (error) {
-      console.error("Image upload error:", error);
-      throw new Error("Failed to upload image");
+    } catch (error: any) {
+      console.error("Image upload error:", error?.message || error);
+      throw new Error(error?.message || "Failed to upload image");
     }
   };
 

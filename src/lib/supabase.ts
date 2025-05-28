@@ -12,21 +12,29 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Tạo Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export async function uploadFile(file: File, bucket: string) {
-  console.log(file)
-  const fileExt = file.name.split('.').pop()
-  const fileName = `${Math.random()}.${fileExt}`
-  const filePath = `${bucket}/${fileName}`
+export async function uploadFile(
+  bucket: string,
+  path: string,
+  file: File
+): Promise<{ data: { publicUrl: string } | null; error: Error | null }> {
+  try {
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(path, file)
 
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(filePath, file)
+    if (uploadError) {
+      return { data: null, error: uploadError }
+    }
 
-  if (error) throw error
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(path)
 
-  const { data: { publicUrl } } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(filePath)
-
-  return publicUrl
+    return { data: { publicUrl }, error: null }
+  } catch (error) {
+    return { 
+      data: null, 
+      error: error instanceof Error ? error : new Error('Unknown error occurred') 
+    }
+  }
 }

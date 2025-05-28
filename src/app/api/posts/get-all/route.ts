@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
@@ -8,7 +8,6 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
-    const category = searchParams.get("category") || "";
     const tag = searchParams.get("tag") || "";
     const published = searchParams.get("published") || "true";
 
@@ -20,11 +19,12 @@ export async function GET(request: Request) {
           OR: [
             { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
             { content: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { excerpt: { contains: search, mode: Prisma.QueryMode.insensitive } },
           ],
         } : {},
-        category ? { categoryIds: { has: category } } : {},
         tag ? { tags: { has: tag } } : {},
         { published: published === "true" },
+        { isHidden: false }, // Don't show hidden posts
       ],
     };
 
@@ -33,11 +33,25 @@ export async function GET(request: Request) {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: [
+          { isPinned: "desc" }, // Pinned posts first
+          { createdAt: "desc" }
+        ],
         include: {
-          categories: true,
-          series: true,
-          author: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          series: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
         },
       }),
       prisma.post.count({ where }),
@@ -45,10 +59,11 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       posts,
-      pagination: {
+      metadata: {
         total,
-        pages: Math.ceil(total / limit),
-        current: page,
+        totalPages: Math.ceil(total / limit),
+        page,
+        limit,
       },
     });
   } catch (error) {

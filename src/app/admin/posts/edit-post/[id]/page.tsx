@@ -23,8 +23,6 @@ import { uploadFile } from "@/lib/supabase";
 import { slugify } from "@/lib/utils";
 import { Loader2, ImagePlus, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
-import { Category, Tag } from "@prisma/client";
 import { TinyEditor } from "@/components/TinyEditor";
 import {
   Select,
@@ -47,15 +45,12 @@ const formSchema = z.object({
   coverImage: z.string().optional(),
   isPinned: z.boolean().default(false),
   isHidden: z.boolean().default(false),
-  categories: z.array(z.string()).min(1, "Select at least one category"),
-  tags: z.array(z.string()),
+  tags: z.string().optional(),
   seriesId: z.string().nullable(),
   orderInSeries: z.number().int().nullable(),
 });
 
 type FormData = z.infer<typeof formSchema>;
-
-
 
 export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -73,9 +68,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     control,
     setValue,
     formState: { errors },
+    watch,
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   });
+
+  const watchSeriesId = watch("seriesId");
 
   // Fetch post data
   const { data: post, isLoading: isLoadingPost } = useQuery({
@@ -105,14 +103,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       setValue("content", post.content);
       setValue("isPinned", post.isPinned);
       setValue("isHidden", post.isHidden);
-      setValue(
-        "categories",
-        post.categories.map((cat: Category) => cat.id)
-      );
-      setValue(
-        "tags",
-        post.tags.map((tag: Tag) => tag.id)
-      );
+      setValue("tags", Array.isArray(post.tags) ? post.tags.join(", ") : "");
       setValue("seriesId", post.seriesId);
       setValue("orderInSeries", post.orderInSeries);
       if (post.coverImage) {
@@ -121,40 +112,29 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     }
   }, [post, setValue]);
 
-  // Fetch categories and tags
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const response = await fetch("/api/categories");
-      if (!response.ok) throw new Error("Failed to fetch categories");
-      return response.json();
-    },
-  });
-
-  const { data: tags = [] } = useQuery({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      const response = await fetch("/api/tags");
-      if (!response.ok) throw new Error("Failed to fetch tags");
-      return response.json();
-    },
-  });
-
   const handleImageUpload = async (blob: Blob): Promise<string> => {
     const file = new File([blob], `image-${Date.now()}.png`, {
       type: blob.type,
     });
     try {
-      const imageUrl = await uploadFile(file, "post-images");
-      if (!imageUrl) {
-        throw new Error("No image URL returned");
-      }
-      return imageUrl;
-    } catch (error) {
-      console.error("Image upload error:", error);
-      throw new Error(
-        error instanceof Error ? error.message : "Failed to upload image"
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${file.name}`;
+      const filePath = `post-images/${fileName}`;
+
+      const { data, error } = await uploadFile(
+        "post-images",
+        filePath,
+        file
       );
+
+      if (error || !data?.publicUrl) {
+        throw new Error(error?.message || "Error uploading image");
+      }
+
+      return data.publicUrl;
+    } catch (error: any) {
+      console.error("Image upload error:", error?.message || error);
+      throw new Error(error?.message || "Failed to upload image");
     }
   };
 
@@ -164,20 +144,11 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     const file = event.target.files?.[0];
     if (file) {
       setCoverImage(file);
-      try {
-        const imageUrl = await handleImageUpload(file);
-        setCoverImagePreview(imageUrl);
-      } catch (uploadError) {
-        console.error("Cover image upload error:", uploadError);
-        toast({
-          title: "Error",
-          description:
-            uploadError instanceof Error
-              ? uploadError.message
-              : "Failed to upload cover image",
-          variant: "destructive",
-        });
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCoverImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -198,6 +169,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             ...data,
             slug,
             coverImage: imageUrl,
+            published: !data.isHidden,
           }),
         });
 
@@ -289,6 +261,21 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                     fill
                     className="object-cover rounded-md"
                   />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    onClick={() => {
+                      setCoverImagePreview(null);
+                      setCoverImage(null);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                      }
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
             </div>
@@ -300,6 +287,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 id="excerpt"
                 {...register("excerpt")}
                 placeholder="Enter post excerpt"
+                rows={3}
               />
               {errors.excerpt && (
                 <p className="text-sm text-red-500">{errors.excerpt.message}</p>
@@ -327,121 +315,20 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
               )}
             </div>
 
-            {/* Categories */}
-            <div className="space-y-2">
-              <Label>Categories</Label>
-              <Controller
-                name="categories"
-                control={control}
-                render={({ field }) => {
-                  const selectedCategories = categories.filter((category: Category) =>
-                    field.value?.includes(category.id)
-                  );
-
-                  return (
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {selectedCategories.map((category: Category) => (
-                          <Badge
-                            key={category.id}
-                            variant="default"
-                            className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-1"
-                          >
-                            {category.name}
-                            <X
-                              className="h-3 w-3 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                field.onChange(
-                                  field.value?.filter((id) => id !== category.id) || []
-                                );
-                              }}
-                            />
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {categories
-                          .filter(
-                            (category: Category) => !field.value?.includes(category.id)
-                          )
-                          .map((category: Category) => (
-                            <Badge
-                              key={category.id}
-                              variant="outline"
-                              className="cursor-pointer hover:bg-gray-100"
-                              onClick={() => {
-                                field.onChange([...(field.value || []), category.id]);
-                              }}
-                            >
-                              {category.name}
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
-                  );
-                }}
-              />
-              {errors.categories && (
-                <p className="text-sm text-red-500">{errors.categories.message}</p>
-              )}
-            </div>
-
             {/* Tags */}
             <div className="space-y-2">
-              <Label>Tags</Label>
-              <Controller
-                name="tags"
-                control={control}
-                render={({ field }) => {
-                  const selectedTags = tags.filter((tag: Tag) =>
-                    field.value?.includes(tag.id)
-                  );
-
-                  return (
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {selectedTags.map((tag: Tag) => (
-                          <Badge
-                            key={tag.id}
-                            variant="default"
-                            className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-1"
-                          >
-                            {tag.name}
-                            <X
-                              className="h-3 w-3 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                field.onChange(
-                                  field.value?.filter((id) => id !== tag.id) || []
-                                );
-                              }}
-                            />
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {tags
-                          .filter((tag: Tag) => !field.value?.includes(tag.id))
-                          .map((tag: Tag) => (
-                            <Badge
-                              key={tag.id}
-                              variant="outline"
-                              className="cursor-pointer hover:bg-gray-100"
-                              onClick={() => {
-                                field.onChange([...(field.value || []), tag.id]);
-                              }}
-                            >
-                              {tag.name}
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
-                  );
-                }}
+              <Label htmlFor="tags">Tags</Label>
+              <Input
+                id="tags"
+                {...register("tags")}
+                placeholder="Enter tags separated by commas (e.g., react, nextjs, typescript)"
               />
+              <p className="text-sm text-gray-500">
+                Separate tags with commas
+              </p>
+              {errors.tags && (
+                <p className="text-sm text-red-500">{errors.tags.message}</p>
+              )}
             </div>
 
             {/* Series Selection */}
@@ -474,29 +361,30 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             </div>
 
             {/* Order in Series */}
-            <div className="space-y-2">
-              <Label htmlFor="orderInSeries">Order in Series (Optional)</Label>
-              <Controller
-                name="orderInSeries"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    type="number"
-                    min="1"
-                    placeholder="Enter order number"
-                    value={field.value || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === "" ? null : parseInt(value, 10));
-                    }}
-                    disabled={!field.value}
-                  />
-                )}
-              />
-              <p className="text-sm text-gray-500">
-                Leave empty if not part of a series
-              </p>
-            </div>
+            {watchSeriesId && (
+              <div className="space-y-2">
+                <Label htmlFor="orderInSeries">Order in Series (Optional)</Label>
+                <Controller
+                  name="orderInSeries"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Enter order number"
+                      value={field.value || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? null : parseInt(value, 10));
+                      }}
+                    />
+                  )}
+                />
+                <p className="text-sm text-gray-500">
+                  Leave empty for automatic ordering
+                </p>
+              </div>
+            )}
 
             {/* Post Settings */}
             <div className="space-y-4">

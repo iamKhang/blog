@@ -24,8 +24,7 @@ interface Post {
   isPinned: boolean;
   isHidden: boolean;
   createdAt: string;
-  categories: Array<{ id: string; name: string }>;
-  tags: Array<{ id: string; name: string }>;
+  tags: string[];
 }
 
 export default function PostsPage() {
@@ -80,7 +79,6 @@ export default function PostsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
-                <TableHead>Categories</TableHead>
                 <TableHead>Tags</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created At</TableHead>
@@ -90,23 +88,18 @@ export default function PostsPage() {
             <TableBody>
               {posts.map((post) => (
                 <TableRow key={post.id}>
-                  <TableCell>{post.title}</TableCell>
+                  <TableCell className="font-medium">{post.title}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {post.categories.map((category) => (
-                        <Badge key={category.id} variant="secondary">
-                          {category.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {post.tags.map((tag) => (
-                        <Badge key={tag.id} variant="outline">
-                          {tag.name}
-                        </Badge>
-                      ))}
+                      {post.tags && post.tags.length > 0 ? (
+                        post.tags.map((tag, index) => (
+                          <Badge key={index} variant="outline">
+                            {tag}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-sm">No tags</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -124,12 +117,22 @@ export default function PostsPage() {
                     {format(new Date(post.createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      onClick={() => router.push(`/admin/posts/edit-post/${post.id}`)}
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push(`/admin/posts/edit-post/${post.id}`)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push(`/posts/${post.id}`)}
+                      >
+                        View
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

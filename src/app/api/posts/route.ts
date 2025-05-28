@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
 // GET /api/posts - Get all posts with pagination and filters
@@ -11,7 +9,6 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
-    const category = searchParams.get("category") || "";
     const tag = searchParams.get("tag") || "";
     const published = searchParams.get("published") || "true";
 
@@ -25,7 +22,6 @@ export async function GET(request: Request) {
             { content: { contains: search, mode: Prisma.QueryMode.insensitive } },
           ],
         } : {},
-        category ? { categoryIds: { has: category } } : {},
         tag ? { tags: { has: tag } } : {},
         { published: published === "true" },
       ],
@@ -38,7 +34,13 @@ export async function GET(request: Request) {
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
-          categories: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
           series: true,
         },
       }),
@@ -65,14 +67,6 @@ export async function GET(request: Request) {
 // POST /api/posts - Create a new post
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
     const {
       title,
@@ -80,12 +74,17 @@ export async function POST(request: Request) {
       content,
       excerpt,
       coverImage,
-      published,
-      categoryIds,
+      published = false,
+      isPinned = false,
+      isHidden = false,
       tags,
       seriesId,
       orderInSeries,
+      authorId,
     } = body;
+
+    // Convert tags string to array if needed
+    const tagsArray = Array.isArray(tags) ? tags : (tags ? tags.split(',').map((tag: string) => tag.trim()) : []);
 
     const post = await prisma.post.create({
       data: {
@@ -95,16 +94,22 @@ export async function POST(request: Request) {
         excerpt,
         coverImage,
         published,
-        categoryIds: categoryIds || [],
-        tags: tags || [],
-        seriesId,
-        orderInSeries,
-        authorId: session.user.id,
+        isPinned,
+        isHidden,
+        tags: tagsArray,
+        seriesId: seriesId || null,
+        orderInSeries: orderInSeries || null,
+        authorId,
       },
       include: {
-        categories: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         series: true,
-        author: true,
       },
     });
 
@@ -121,26 +126,28 @@ export async function POST(request: Request) {
 // PATCH /api/posts - Update a post
 export async function PATCH(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
     const { id, ...data } = body;
+
+    // Convert tags string to array if needed
+    const tagsArray = Array.isArray(data.tags) ? data.tags : (data.tags ? data.tags.split(',').map((tag: string) => tag.trim()) : []);
 
     const post = await prisma.post.update({
       where: { id },
       data: {
         ...data,
-        categoryIds: data.categoryIds || [],
-        tags: data.tags || [],
+        tags: tagsArray,
+        seriesId: data.seriesId || null,
+        orderInSeries: data.orderInSeries || null,
       },
       include: {
-        categories: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         series: true,
       },
     });
@@ -158,14 +165,6 @@ export async function PATCH(request: Request) {
 // DELETE /api/posts - Delete a post
 export async function DELETE(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 

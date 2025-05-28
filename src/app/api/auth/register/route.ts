@@ -34,9 +34,12 @@ export async function POST(request: Request) {
     }
 
     // Hash password
+    console.log("Hashing password...");
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+    console.log("Password hashed successfully");
 
     // Tạo user mới
+    console.log("Creating new user...");
     const user = await prisma.user.create({
       data: {
         name: validatedData.name,
@@ -47,17 +50,22 @@ export async function POST(request: Request) {
         avatar: validatedData.avatar,
       },
     });
+    console.log("User created successfully");
 
     // Tạo tokens
     const { accessToken, refreshToken } = generateTokens(user);
 
     // Tạo session mới
+    console.log("Creating new session...");
     await prisma.session.create({
       data: {
         userId: user.id,
         refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        isValid: true,
       },
     });
+    console.log("Session created successfully");
 
     // Loại bỏ password trước khi trả về response
     const { password: _, ...userWithoutPassword } = user;

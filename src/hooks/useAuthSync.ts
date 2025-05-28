@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { jwtDecode } from 'jwt-decode';
 
 export function useAuthSync() {
-  const { accessToken, refreshToken, isAuthenticated } = useAuthStore();
+  const { accessToken, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (!accessToken || !isAuthenticated) return;
