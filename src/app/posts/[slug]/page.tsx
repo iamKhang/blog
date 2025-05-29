@@ -7,16 +7,6 @@ import { Button } from "@/components/ui/button";
 import { ThumbsUp, Eye, Calendar, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PostContent } from "@/components/PostContent";
 
-interface Category {
-  id: string;
-  name: string;
-}
-
-interface Tag {
-  id: string;
-  name: string;
-}
-
 interface SeriesPost {
   id: string;
   title: string;
@@ -29,6 +19,24 @@ interface Series {
   title: string;
   slug: string;
   posts: SeriesPost[];
+}
+
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  coverImage: string | null;
+  published: boolean;
+  isPinned: boolean;
+  isHidden: boolean;
+  views: number;
+  likes: number;
+  tags: string[];
+  series: Series | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Props {
@@ -71,7 +79,7 @@ export default async function PostPage({ params }: Props) {
       <div className="relative w-full h-[40vh] min-h-[400px] bg-navy-900">
         {post.coverImage ? (
           <Image
-            src={post.coverImage || "/placeholder.svg"}
+            src={post.coverImage}
             alt={post.title}
             fill
             className="object-cover opacity-20"
@@ -86,12 +94,12 @@ export default async function PostPage({ params }: Props) {
         <div className="container relative h-full max-w-7xl mx-auto px-4 flex flex-col justify-end pb-12 content-post">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              {post.categories.map((category: Category) => (
+              {post.tags.map((tag) => (
                 <Badge
-                  key={category.id}
+                  key={tag}
                   className="bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 transition-colors"
                 >
-                  {category.name}
+                  {tag}
                 </Badge>
               ))}
             </div>
@@ -138,7 +146,7 @@ export default async function PostPage({ params }: Props) {
               {post.series.posts.length > 0 && (
                 <div className="mt-3">
                   <div className="flex flex-col space-y-2">
-                    {post.series.posts.map((seriesPost: SeriesPost) => (
+                    {post.series.posts.map((seriesPost) => (
                       <div
                         key={seriesPost.id}
                         className={`flex items-center ${
@@ -219,13 +227,13 @@ export default async function PostPage({ params }: Props) {
           {/* Tags */}
           <div className="mt-8 pt-8 border-t dark:border-gray-700">
             <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag: Tag) => (
+              {post.tags.map((tag) => (
                 <Badge
-                  key={tag.id}
+                  key={tag}
                   variant="outline"
                   className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  {tag.name}
+                  {tag}
                 </Badge>
               ))}
             </div>

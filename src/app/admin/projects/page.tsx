@@ -22,10 +22,11 @@ const fetchProjects = async () => {
 };
 
 export default function ProjectsPage() {
-  const { data: projects = [], isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: fetchProjects,
   });
+  const projects = Array.isArray(data) ? data : [];
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -54,42 +55,48 @@ export default function ProjectsPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {projects.map((project: any) => (
-            <TableRow key={project.id}>
-              <TableCell>{project.title}</TableCell>
-              <TableCell>
-                <Badge
-                  variant={
-                    project.status === "COMPLETED"
-                      ? "default"
-                      : project.status === "IN_PROGRESS"
-                      ? "secondary"
-                      : "outline"
-                  }
-                >
-                  {project.status}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {project.technologies.map((tech: any) => (
-                    <Badge key={tech.id} variant="outline">
-                      {tech.name}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>
-                {format(new Date(project.createdAt), "MMM d, yyyy")}
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  {project.isPinned && <Badge>Pinned</Badge>}
-                  {project.isHidden && <Badge variant="secondary">Hidden</Badge>}
-                </div>
-              </TableCell>
+          {projects.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center text-gray-400">Không có dự án nào</TableCell>
             </TableRow>
-          ))}
+          ) : (
+            projects.map((project: any) => (
+              <TableRow key={project.id}>
+                <TableCell>{project.title}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      project.status === "COMPLETED"
+                        ? "default"
+                        : project.status === "IN_PROGRESS"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {project.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {project.technologies.map((tech: any) => (
+                      <Badge key={tech.id} variant="outline">
+                        {tech.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(project.createdAt), "MMM d, yyyy")}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    {project.isPinned && <Badge>Pinned</Badge>}
+                    {project.isHidden && <Badge variant="secondary">Hidden</Badge>}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

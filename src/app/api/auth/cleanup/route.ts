@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    // Xóa tất cả session hết hạn
-    const result = await prisma.session.deleteMany({
+    // Delete expired sessions
+    await prisma.session.deleteMany({
       where: {
         OR: [
-          { expiresAt: { lt: new Date() } }, // Session đã hết hạn
-          { isValid: false }, // Session đã bị vô hiệu hóa
-        ],
-      },
+          { expiresAt: { lt: new Date() } },
+          { isValid: false }
+        ]
+      }
     });
 
-    return NextResponse.json({
-      message: "Cleanup completed",
-      deletedCount: result.count,
-    });
+    return NextResponse.json({ message: "Cleanup completed successfully" });
   } catch (error) {
     console.error("Cleanup error:", error);
     return NextResponse.json(

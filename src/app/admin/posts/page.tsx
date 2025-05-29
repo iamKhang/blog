@@ -86,56 +86,62 @@ export default function PostsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {posts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell className="font-medium">{post.title}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {post.tags && post.tags.length > 0 ? (
-                        post.tags.map((tag, index) => (
-                          <Badge key={index} variant="outline">
-                            {tag}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-gray-400 text-sm">No tags</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      {!post.isHidden && (
-                        <Badge variant="default">Published</Badge>
-                      )}
-                      {post.isPinned && <Badge variant="secondary">Pinned</Badge>}
-                      {post.isHidden && (
-                        <Badge variant="destructive">Hidden</Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(post.createdAt), "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => router.push(`/admin/posts/edit-post/${post.id}`)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => router.push(`/posts/${post.id}`)}
-                      >
-                        View
-                      </Button>
-                    </div>
-                  </TableCell>
+              {posts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-gray-400">Không có bài viết nào</TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">{post.title}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {post.tags && post.tags.length > 0 ? (
+                          post.tags.map((tag, index) => (
+                            <Badge key={index} variant="outline">
+                              {tag}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-gray-400 text-sm">No tags</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {!post.isHidden && (
+                          <Badge variant="default">Published</Badge>
+                        )}
+                        {post.isPinned && <Badge variant="secondary">Pinned</Badge>}
+                        {post.isHidden && (
+                          <Badge variant="destructive">Hidden</Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(post.createdAt), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/admin/posts/edit-post/${post.id}`)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/posts/${post.id}`)}
+                        >
+                          View
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
 

@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       },
       {
         headers: {
-          'Set-Cookie': `refreshToken=${tokens.refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict; Secure`
+          'Set-Cookie': `refreshToken=${tokens.refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax; Secure`
         }
       }
     );

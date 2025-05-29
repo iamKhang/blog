@@ -15,8 +15,24 @@ export async function GET(
     const post = await prisma.post.findUnique({
       where: { slug: params.slug },
       include: {
-        categories: true,
-        series: true,
+        series: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            posts: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                orderInSeries: true,
+              },
+              orderBy: {
+                orderInSeries: 'asc',
+              },
+            },
+          },
+        },
       },
     });
 
@@ -29,15 +45,15 @@ export async function GET(
 
     // Increment view count
     await prisma.post.update({
-      where: { slug: params.slug },
+      where: { id: post.id },
       data: { views: { increment: 1 } },
     });
 
     return NextResponse.json(post);
   } catch (error) {
-    console.error("Error fetching post:", error);
+    console.error("[GET_POST]", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Failed to fetch post" },
       { status: 500 }
     );
   }
