@@ -139,16 +139,16 @@ export default function ProfilePage() {
           school,
           degree,
           field,
-          startDate: new Date(startDate).toISOString(),
-          endDate: endDate ? new Date(endDate).toISOString() : null,
+          startDate: startDate ? new Date(startDate + '-01').toISOString() : null,
+          endDate: !endDate || endDate === '' ? null : new Date(endDate + '-01').toISOString(),
           description
         })),
         experience: profile.experience.map(({ id, company, position, startDate, endDate, description }) => ({
           id,
           company,
           position,
-          startDate: new Date(startDate).toISOString(),
-          endDate: endDate ? new Date(endDate).toISOString() : null,
+          startDate: startDate ? new Date(startDate + '-01').toISOString() : null,
+          endDate: !endDate || endDate === '' ? null : new Date(endDate + '-01').toISOString(),
           description
         }))
       }
@@ -273,9 +273,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <form onSubmit={handleSubmit}>
-        <Card>
+    <div className="flex justify-center">
+      <form onSubmit={handleSubmit} className="w-full">
+        <Card className="shadow-lg rounded-xl border border-gray-200">
           <CardHeader>
             <CardTitle>Edit Profile</CardTitle>
           </CardHeader>
@@ -520,23 +520,43 @@ export default function ProfilePage() {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 items-end">
                       <div className="space-y-2">
-                        <Label>Start Date</Label>
+                        <Label>Start Month</Label>
                         <Input
-                          type="date"
-                          value={edu.startDate}
+                          type="month"
+                          value={edu.startDate ? edu.startDate.slice(0, 7) : ''}
                           onChange={(e) => updateItem('education', index, 'startDate', e.target.value)}
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>End Date</Label>
-                        <Input
-                          type="date"
-                          value={edu.endDate || ''}
-                          onChange={(e) => updateItem('education', index, 'endDate', e.target.value)}
-                        />
+                        <Label>End Month</Label>
+                        {edu.endDate === null || edu.endDate === '' ? (
+                          <div className="flex items-center gap-2">
+                            <span>Hiện nay</span>
+                            <input
+                              type="checkbox"
+                              checked={true}
+                              onChange={() => updateItem('education', index, 'endDate', new Date().toISOString().slice(0, 7))}
+                            />
+                            <span className="text-xs">Bỏ chọn để nhập tháng kết thúc</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="month"
+                              value={edu.endDate ? edu.endDate.slice(0, 7) : ''}
+                              onChange={(e) => updateItem('education', index, 'endDate', e.target.value)}
+                            />
+                            <input
+                              type="checkbox"
+                              checked={false}
+                              onChange={() => updateItem('education', index, 'endDate', null)}
+                            />
+                            <span className="text-xs">Hiện nay</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -592,23 +612,43 @@ export default function ProfilePage() {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 items-end">
                       <div className="space-y-2">
-                        <Label>Start Date</Label>
+                        <Label>Start Month</Label>
                         <Input
-                          type="date"
-                          value={exp.startDate}
+                          type="month"
+                          value={exp.startDate ? exp.startDate.slice(0, 7) : ''}
                           onChange={(e) => updateItem('experience', index, 'startDate', e.target.value)}
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>End Date</Label>
-                        <Input
-                          type="date"
-                          value={exp.endDate || ''}
-                          onChange={(e) => updateItem('experience', index, 'endDate', e.target.value)}
-                        />
+                        <Label>End Month</Label>
+                        {exp.endDate === null || exp.endDate === '' ? (
+                          <div className="flex items-center gap-2">
+                            <span>Hiện nay</span>
+                            <input
+                              type="checkbox"
+                              checked={true}
+                              onChange={() => updateItem('experience', index, 'endDate', new Date().toISOString().slice(0, 7))}
+                            />
+                            <span className="text-xs">Bỏ chọn để nhập tháng kết thúc</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="month"
+                              value={exp.endDate ? exp.endDate.slice(0, 7) : ''}
+                              onChange={(e) => updateItem('experience', index, 'endDate', e.target.value)}
+                            />
+                            <input
+                              type="checkbox"
+                              checked={false}
+                              onChange={() => updateItem('experience', index, 'endDate', null)}
+                            />
+                            <span className="text-xs">Hiện nay</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

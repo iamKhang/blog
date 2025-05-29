@@ -12,6 +12,7 @@ import {
   LogOut,
   BookOpen,
   ChevronRight,
+  UserRound,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,6 +42,11 @@ const menuItems = [
     title: "Người dùng",
     href: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "Hồ sơ",
+    href: "/admin/profile",
+    icon: UserRound,
   },
   {
     title: "Cài đặt",
