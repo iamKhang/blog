@@ -1,0 +1,88 @@
+{
+  "profile": {
+    "id": "profile_1",
+    "name": "Le Hoang Khang",
+    "title": "Full Stack Developer",
+    "bio": "I am a passionate Full Stack Developer with expertise in modern web technologies. I love building scalable applications and solving complex problems. With a strong foundation in both frontend and backend development, I strive to create efficient and user-friendly solutions.",
+    "avatar": "https://avatars.githubusercontent.com/u/your-github-id",
+    "email": "your.email@example.com",
+    "location": "Ho Chi Minh City, Vietnam",
+    "skills": [
+      {
+        "name": "React",
+        "category": "Frontend",
+        "level": 5
+      },
+      {
+        "name": "Next.js",
+        "category": "Frontend",
+        "level": 5
+      },
+      {
+        "name": "TypeScript",
+        "category": "Language",
+        "level": 4
+      },
+      {
+        "name": "Node.js",
+        "category": "Backend",
+        "level": 4
+      },
+      {
+        "name": "MongoDB",
+        "category": "Database",
+        "level": 4
+      },
+      {
+        "name": "Prisma",
+        "category": "ORM",
+        "level": 4
+      },
+      {
+        "name": "Tailwind CSS",
+        "category": "Styling",
+        "level": 5
+      }
+    ],
+    "socialLinks": [
+      {
+        "platform": "GitHub",
+        "url": "https://github.com/your-username"
+      },
+      {
+        "platform": "LinkedIn",
+        "url": "https://linkedin.com/in/your-username"
+      },
+      {
+        "platform": "Twitter",
+        "url": "https://twitter.com/your-username"
+      }
+    ],
+    "education": [
+      {
+        "school": "University of Technology",
+        "degree": "Bachelor of Computer Science",
+        "field": "Software Engineering",
+        "startDate": "2018-09-01",
+        "endDate": "2022-06-30",
+        "description": "Focused on software development, algorithms, and data structures. Participated in various hackathons and coding competitions."
+      }
+    ],
+    "experience": [
+      {
+        "company": "Tech Company A",
+        "position": "Full Stack Developer",
+        "startDate": "2022-07-01",
+        "endDate": null,
+        "description": "Working on building and maintaining web applications using React, Next.js, and Node.js. Implementing new features and optimizing performance."
+      },
+      {
+        "company": "Startup B",
+        "position": "Frontend Developer Intern",
+        "startDate": "2021-06-01",
+        "endDate": "2022-05-31",
+        "description": "Developed user interfaces and implemented responsive designs. Collaborated with the team to deliver high-quality products."
+      }
+    ]
+  }
+} 

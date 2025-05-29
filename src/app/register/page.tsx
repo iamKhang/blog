@@ -81,7 +81,15 @@ export default function RegistrationPage() {
       let avatarUrl = null
       if (formData.avatar) {
         try {
-          avatarUrl = await uploadFile(formData.avatar, 'avatar-images')
+          const { data, error } = await uploadFile(
+            'avatar-images',
+            `avatars/${Date.now()}-${formData.avatar.name}`,
+            formData.avatar
+          )
+          if (error) {
+            throw new Error('Failed to upload avatar')
+          }
+          avatarUrl = data?.publicUrl
         } catch (uploadError) {
           console.error('Avatar upload error:', uploadError)
           toast({
@@ -114,7 +122,7 @@ export default function RegistrationPage() {
       console.error('Registration error:', error)
       toast({
         title: "Registration failed",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: error instanceof Error ? error.message : "An error occurred during registration",
         variant: "destructive",
       })
     }

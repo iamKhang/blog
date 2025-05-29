@@ -5,11 +5,15 @@ import { jwtDecode } from "jwt-decode";
 interface JWTPayload {
   exp: number;
   role?: string;
+  email: string;
 }
 
 export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')
   const refreshToken = request.cookies.get('refreshToken')
+
+  // Check if route is admin route
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
 
   // Nếu không có access token nhưng có refresh token, thử refresh
   if (!accessToken && refreshToken) {
@@ -53,7 +57,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Nếu có access token, kiểm tra hết hạn
+  // Nếu có access token, kiểm tra hết hạn và quyền
   if (accessToken) {
     try {
       const decoded = jwtDecode<JWTPayload>(accessToken.value)
@@ -90,6 +94,11 @@ export async function middleware(request: NextRequest) {
           return res
         }
       }
+
+      // Kiểm tra quyền admin cho các route admin
+      if (isAdminRoute && decoded.role !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
     } catch (error) {
       console.error('Token validation failed:', error)
       // Xóa cookies và chuyển về trang login
@@ -98,6 +107,9 @@ export async function middleware(request: NextRequest) {
       res.cookies.delete('refreshToken')
       return res
     }
+  } else if (isAdminRoute) {
+    // Nếu là route admin và không có token, chuyển về trang login
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return NextResponse.next()

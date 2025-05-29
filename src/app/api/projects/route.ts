@@ -15,7 +15,7 @@ const ProjectCreateSchema = z.object({
   docsUrl: z.string().url("Docs URL is invalid").optional().nullable(),
   isPinned: z.boolean().optional(),
   isHidden: z.boolean().optional(),
-  technologies: z.array(z.string()).optional(),
+  techStack: z.array(z.string()).optional(),
 });
 
 export async function GET(request: Request) {
@@ -31,9 +31,6 @@ export async function GET(request: Request) {
 
     // Lấy projects với phân trang
     const projects = await prisma.project.findMany({
-      include: {
-        technologies: true,
-      },
       orderBy: [
         { isPinned: 'desc' },
         { createdAt: 'desc' }
@@ -50,11 +47,7 @@ export async function GET(request: Request) {
       excerpt: project.excerpt,
       description: project.description,
       thumbnail: project.thumbnail,
-      technologies: project.technologies.map(tech => ({
-        id: tech.id,
-        name: tech.name,
-        url: tech.url || ''
-      })),
+      techStack: project.techStack || [],
       status: project.status,
       githubUrl: project.githubUrl || null,
       demoUrl: project.demoUrl || null,
@@ -80,11 +73,15 @@ export async function GET(request: Request) {
     console.error("GET PROJECTS ERROR:", error);
     return NextResponse.json(
       {
-        message: "Failed to fetch projects",
-        error: String(error),
-        projects: [] // Trả về mảng rỗng để tránh lỗi ở client
+        projects: [],
+        metadata: {
+          currentPage: 1,
+          pageSize: 9,
+          totalPages: 0,
+          totalItems: 0,
+        }
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }
@@ -123,7 +120,7 @@ export async function POST(request: Request) {
         docsUrl: validatedData.docsUrl || null,
         isPinned: validatedData.isPinned || false,
         isHidden: validatedData.isHidden || false,
-        technologyIds: validatedData.technologies || [],
+        techStack: validatedData.techStack || [],
         views: 0,
         likes: 0,
       },

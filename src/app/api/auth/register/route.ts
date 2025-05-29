@@ -86,8 +86,9 @@ export async function POST(request: Request) {
     }
     
     console.error("Registration error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Đã có lỗi xảy ra khi đăng ký";
     return NextResponse.json(
-      { error: "Đã có lỗi xảy ra khi đăng ký" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

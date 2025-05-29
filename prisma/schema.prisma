@@ -108,3 +108,77 @@ model Session {
   @@map("sessions")
   @@index([expiresAt])
 }
+
+model Profile {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  title         String
+  bio           String
+  avatar        String
+  email         String
+  location      String
+  skills        Skill[]
+  socialLinks   SocialLink[]
+  education     Education[]
+  experience    Experience[]
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+model Skill {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  category    String    // e.g., "Frontend", "Backend", "Database", "DevOps"
+  level       Int       // 1-5 scale
+  profileId   String    @db.ObjectId @map("profile_id")
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("skills")
+}
+
+model SocialLink {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  platform    String    // e.g., "GitHub", "LinkedIn", "Twitter"
+  url         String
+  profileId   String    @db.ObjectId @map("profile_id")
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("social_links")
+}
+
+model Education {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  school      String
+  degree      String
+  field       String
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  description String?
+  profileId   String    @db.ObjectId @map("profile_id")
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("education")
+}
+
+model Experience {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  company     String
+  position    String
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  description String
+  profileId   String    @db.ObjectId @map("profile_id")
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("experience")
+}

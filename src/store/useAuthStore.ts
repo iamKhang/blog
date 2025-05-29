@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import Cookies from 'js-cookie';
 
 interface User {
   id: string;
@@ -52,6 +53,18 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(data.error || 'Đăng nhập thất bại');
           }
 
+          // Set cookies
+          Cookies.set('accessToken', data.accessToken, { 
+            expires: 1/24, // 1 hour
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          });
+          Cookies.set('refreshToken', data.refreshToken, {
+            expires: 7, // 7 days
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          });
+
           set({
             user: data.user,
             accessToken: data.accessToken,
@@ -91,6 +104,18 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(data.error || 'Đăng ký thất bại');
           }
 
+          // Set cookies
+          Cookies.set('accessToken', data.accessToken, { 
+            expires: 1/24,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          });
+          Cookies.set('refreshToken', data.refreshToken, {
+            expires: 7,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          });
+
           set({
             user: data.user,
             accessToken: data.accessToken,
@@ -120,6 +145,13 @@ export const useAuthStore = create<AuthState>()(
 
           const data = await response.json();
 
+          // Update cookies
+          Cookies.set('accessToken', data.accessToken, { 
+            expires: 1/24,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          });
+
           set({
             user: data.user,
             accessToken: data.accessToken,
@@ -139,6 +171,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Remove cookies
+        Cookies.remove('accessToken');
+        Cookies.remove('refreshToken');
+        
         set({
           user: null,
           accessToken: null,
@@ -177,5 +213,6 @@ export const authFetch = async (url: string, options: RequestInit = {}) => {
   return fetch(url, {
     ...options,
     headers,
+    credentials: 'include', // Include cookies
   });
 }; 

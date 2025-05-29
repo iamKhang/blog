@@ -1,154 +1,200 @@
-'use client'
-
-import React from 'react'
+import { Metadata } from 'next'
+import prisma from '@/lib/prisma'
 import Image from 'next/image'
-import Link from 'next/link'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Github, Linkedin, Mail, FileText } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { CalendarDays, MapPin, Mail, Github, Linkedin, Twitter } from 'lucide-react'
 
-const skills = [
-  "JavaScript", "TypeScript", "React", "Next.js", "Node.js", "Express", "MongoDB", "SQL", "Git", "Docker"
-]
+export const metadata: Metadata = {
+  title: 'About Me',
+  description: 'Learn more about me and my skills',
+}
 
-const experiences = [
-  {
-    title: "Senior Frontend Developer",
-    company: "Tech Solutions Inc.",
-    period: "2020 - Present",
-    description: "Lead frontend development for multiple high-traffic web applications. Implemented modern React practices and improved performance by 40%."
-  },
-  {
-    title: "Full Stack Developer",
-    company: "Innovative Startups Co.",
-    period: "2018 - 2020",
-    description: "Developed and maintained full-stack applications using MERN stack. Collaborated with cross-functional teams to deliver projects on time."
-  },
-  {
-    title: "Junior Web Developer",
-    company: "Digital Agency XYZ",
-    period: "2016 - 2018",
-    description: "Created responsive websites for clients across various industries. Gained proficiency in frontend technologies and best practices."
+async function getProfile() {
+  const profile = await prisma.profile.findFirst({
+    include: {
+      skills: true,
+      socialLinks: true,
+      education: true,
+      experience: true,
+    },
+  })
+  return profile
+}
+
+export default async function AboutMePage() {
+  const profile = await getProfile()
+
+  if (!profile) {
+    return (
+      <div className="container mx-auto py-8">
+        <p>Profile not found</p>
+      </div>
+    )
   }
-]
 
-const projects = [
-  {
-    title: "E-commerce Platform",
-    description: "A full-stack e-commerce solution with real-time inventory management.",
-    technologies: ["React", "Node.js", "MongoDB", "Socket.io"]
-  },
-  {
-    title: "Task Management App",
-    description: "A Trello-like application for team collaboration and project management.",
-    technologies: ["Next.js", "TypeScript", "PostgreSQL", "GraphQL"]
-  },
-  {
-    title: "Weather Forecast Dashboard",
-    description: "An interactive weather dashboard with data visualization.",
-    technologies: ["React", "D3.js", "OpenWeatherMap API"]
-  }
-]
+  // Group skills by category
+  const skillsByCategory = profile.skills.reduce((acc, skill) => {
+    if (!acc[skill.category]) {
+      acc[skill.category] = []
+    }
+    acc[skill.category].push(skill)
+    return acc
+  }, {} as Record<string, typeof profile.skills>)
 
-export default function AboutMePage() {
   return (
-    <div className="min-h-screen bg-white p-8 py-3">
-      <header className="mb-12 text-center">
-        <Image
-          src="/images/profile.jpg"
-          alt="Profile Picture"
-          width={150}
-          height={150}
-          className="rounded-full mx-auto mb-4"
-        />
-        <h1 className="text-4xl font-bold mb-2 text-blue-900">Lê Hoàng Khang</h1>
-        <p className="text-xl text-gray-600 mb-4">Software Engineer</p>
-        <div className="flex justify-center space-x-4">
-          <Button variant="outline" size="icon">
-            <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer">
-              <Github className="h-5 w-5" />
-            </Link>
-          </Button>
-          <Button variant="outline" size="icon">
-            <Link href="https://linkedin.com/in/yourusername" target="_blank" rel="noopener noreferrer">
-              <Linkedin className="h-5 w-5" />
-            </Link>
-          </Button>
-          <Button variant="outline" size="icon">
-            <Link href="mailto:your.email@example.com">
-              <Mail className="h-5 w-5" />
-            </Link>
-          </Button>
-          <Button variant="outline" size="icon">
-            <Link href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-              <FileText className="h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-      </header>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-900">About Me</h2>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-gray-700">
-              I am a passionate and experienced frontend developer with a strong background in creating responsive and user-friendly web applications. With over 5 years of experience in the industry, I specialize in React and Next.js development, always striving to write clean, efficient, and maintainable code.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-900">Skills</h2>
-        <div className="flex flex-wrap gap-2">
-          {skills.map((skill, index) => (
-            <Badge key={index} variant="secondary" className="text-sm">
-              {skill}
-            </Badge>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-900">Work Experience</h2>
+    <div className="container mx-auto py-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left Column - Basic Info */}
         <div className="space-y-6">
-          {experiences.map((exp, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="text-lg">{exp.title}</CardTitle>
-                <p className="text-sm text-gray-500">{exp.company} | {exp.period}</p>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700">{exp.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-900">Projects</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project, index) => (
-            <Card key={index} className="flex flex-col h-full">
-              <CardHeader>
-                <CardTitle className="text-lg">{project.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-gray-700 mb-4">{project.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech, techIndex) => (
-                    <Badge key={techIndex} variant="outline" className="text-xs">
-                      {tech}
-                    </Badge>
-                  ))}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative h-48 w-48 rounded-full overflow-hidden">
+                  <Image
+                    src={profile.avatar}
+                    alt={profile.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold">{profile.name}</h1>
+                  <p className="text-gray-600">{profile.title}</p>
+                </div>
+                <div className="flex space-x-4">
+                  {profile.socialLinks.map((link) => {
+                    const Icon = {
+                      'GitHub': Github,
+                      'LinkedIn': Linkedin,
+                      'Twitter': Twitter,
+                    }[link.platform] || Github
+
+                    return (
+                      <a
+                        key={link.platform}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 hover:text-gray-900"
+                      >
+                        <Icon className="h-6 w-6" />
+                      </a>
+                    )
+                  })}
+                </div>
+                <div className="w-full space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Mail className="h-4 w-4 text-gray-600" />
+                    <span>{profile.email}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-gray-600" />
+                    <span>{profile.location}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Skills */}
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="text-xl font-semibold mb-4">Skills</h2>
+              <div className="space-y-4">
+                {Object.entries(skillsByCategory).map(([category, skills]) => (
+                  <div key={category}>
+                    <h3 className="font-medium mb-2">{category}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {skills.map((skill) => (
+                        <Badge
+                          key={skill.id}
+                          variant="secondary"
+                          className="flex items-center space-x-1"
+                        >
+                          <span>{skill.name}</span>
+                          <span className="text-xs">({skill.level}/5)</span>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </section>
+
+        {/* Right Column - Bio, Education, Experience */}
+        <div className="md:col-span-2 space-y-6">
+          {/* Bio */}
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="text-xl font-semibold mb-4">About Me</h2>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: profile.bio }}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Education */}
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="text-xl font-semibold mb-4">Education</h2>
+              <div className="space-y-6">
+                {profile.education.map((edu) => (
+                  <div key={edu.id} className="space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium">{edu.school}</h3>
+                        <p className="text-gray-600">{edu.degree} in {edu.field}</p>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <CalendarDays className="h-4 w-4" />
+                        <span>
+                          {new Date(edu.startDate).getFullYear()} - {edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present'}
+                        </span>
+                      </div>
+                    </div>
+                    {edu.description && (
+                      <p className="text-gray-600">{edu.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Experience */}
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="text-xl font-semibold mb-4">Experience</h2>
+              <div className="space-y-6">
+                {profile.experience.map((exp) => (
+                  <div key={exp.id} className="space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium">{exp.company}</h3>
+                        <p className="text-gray-600">{exp.position}</p>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <CalendarDays className="h-4 w-4" />
+                        <span>
+                          {new Date(exp.startDate).getFullYear()} - {exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present'}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className="prose max-w-none"
+                      dangerouslySetInnerHTML={{ __html: exp.description }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
