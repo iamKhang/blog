@@ -66,27 +66,27 @@ export async function middleware(request: NextRequest) {
       // Nếu token sắp hết hạn (còn 5 phút) và có refresh token, thử refresh
       if (decoded.exp && decoded.exp - currentTime < 300 && refreshToken) {
         try {
-        const response = await fetch(`${request.nextUrl.origin}/api/auth/refresh`, {
-          method: 'POST',
-          headers: {
-            'Cookie': `refreshToken=${refreshToken.value}`,
-          },
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          const res = NextResponse.next()
-          
-          res.cookies.set({
-            name: 'accessToken',
-            value: data.accessToken,
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 15 * 60,
+          const response = await fetch(`${request.nextUrl.origin}/api/auth/refresh`, {
+            method: 'POST',
+            headers: {
+              'Cookie': `refreshToken=${refreshToken.value}`,
+            },
           })
 
-          return res
+          if (response.ok) {
+            const data = await response.json()
+            const res = NextResponse.next()
+            
+            res.cookies.set({
+              name: 'accessToken',
+              value: data.accessToken,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              maxAge: 15 * 60,
+            })
+
+            return res
           }
         } catch (error) {
           console.error('Token refresh failed:', error)
@@ -95,7 +95,8 @@ export async function middleware(request: NextRequest) {
 
       // Kiểm tra quyền admin cho các route admin
       if (isAdminRoute && decoded.role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/', request.url))
+        const res = NextResponse.redirect(new URL('/', request.url))
+        return res
       }
     } catch (error) {
       console.error('Token validation failed:', error)
@@ -107,7 +108,8 @@ export async function middleware(request: NextRequest) {
     }
   } else if (isAdminRoute) {
     // Nếu là route admin và không có token, chuyển về trang login
-    return NextResponse.redirect(new URL('/login', request.url))
+    const res = NextResponse.redirect(new URL('/login', request.url))
+    return res
   }
 
   return NextResponse.next()
