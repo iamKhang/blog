@@ -6,16 +6,14 @@ import prisma from "@/lib/prisma";
 // Schema cho việc tạo project
 const ProjectCreateSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
   excerpt: z.string().min(1, "Excerpt is required"),
   description: z.string().min(1, "Description is required"),
   thumbnail: z.string().min(1, "Thumbnail is required"),
-  status: z.enum(["COMPLETED", "IN_PROGRESS", "PLANNED"]),
-  githubUrl: z.string().url("GitHub URL is invalid").optional().nullable(),
-  demoUrl: z.string().url("Demo URL is invalid").optional().nullable(),
-  docsUrl: z.string().url("Docs URL is invalid").optional().nullable(),
-  isPinned: z.boolean().optional(),
-  isHidden: z.boolean().optional(),
-  techStack: z.array(z.string()).optional(),
+  status: z.boolean().default(false),
+  isPinned: z.boolean().default(false),
+  isHidden: z.boolean().default(false),
+  techStack: z.array(z.string()).default([]),
 });
 
 export async function GET(request: Request) {
@@ -49,9 +47,6 @@ export async function GET(request: Request) {
       thumbnail: project.thumbnail,
       techStack: project.techStack || [],
       status: project.status,
-      githubUrl: project.githubUrl || null,
-      demoUrl: project.demoUrl || null,
-      docsUrl: project.docsUrl || null,
       views: project.views || 0,
       likes: project.likes || 0,
       isPinned: project.isPinned || false,
@@ -91,17 +86,14 @@ export async function POST(request: Request) {
     const data = await request.json();
     const validatedData = ProjectCreateSchema.parse(data);
 
-    // Use the slugify function with just the title
-    const slug = slugify(validatedData.title);
-
     // Kiểm tra project đã tồn tại
     const existingProject = await prisma.project.findUnique({
-      where: { slug },
+      where: { slug: validatedData.slug },
     });
 
     if (existingProject) {
       return NextResponse.json(
-        { message: "A project with this title already exists" },
+        { message: "A project with this slug already exists" },
         { status: 400 }
       );
     }
@@ -110,17 +102,14 @@ export async function POST(request: Request) {
     const project = await prisma.project.create({
       data: {
         title: validatedData.title,
-        slug,
+        slug: validatedData.slug,
         excerpt: validatedData.excerpt,
         description: validatedData.description,
         thumbnail: validatedData.thumbnail,
         status: validatedData.status,
-        githubUrl: validatedData.githubUrl || null,
-        demoUrl: validatedData.demoUrl || null,
-        docsUrl: validatedData.docsUrl || null,
-        isPinned: validatedData.isPinned || false,
-        isHidden: validatedData.isHidden || false,
-        techStack: validatedData.techStack || [],
+        isPinned: validatedData.isPinned,
+        isHidden: validatedData.isHidden,
+        techStack: validatedData.techStack,
         views: 0,
         likes: 0,
       },

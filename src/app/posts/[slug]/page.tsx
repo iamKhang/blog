@@ -94,7 +94,7 @@ export default async function PostPage({ params }: Props) {
         <div className="container relative h-full max-w-7xl mx-auto px-4 flex flex-col justify-end pb-12 content-post">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
+              {post.tags.map((tag: string) => (
                 <Badge
                   key={tag}
                   className="bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 transition-colors"
@@ -146,7 +146,7 @@ export default async function PostPage({ params }: Props) {
               {post.series.posts.length > 0 && (
                 <div className="mt-3">
                   <div className="flex flex-col space-y-2">
-                    {post.series.posts.map((seriesPost) => (
+                    {post.series.posts.map((seriesPost: SeriesPost) => (
                       <div
                         key={seriesPost.id}
                         className={`flex items-center ${
@@ -179,7 +179,7 @@ export default async function PostPage({ params }: Props) {
                 <div className="flex justify-between mt-4 pt-3 border-t border-blue-200 dark:border-blue-800">
                   {(() => {
                     const currentIndex = post.series.posts.findIndex(
-                      (p) => p.slug === post.slug
+                      (p: SeriesPost) => p.slug === post.slug
                     );
                     const prevPost = currentIndex > 0
                       ? post.series.posts[currentIndex - 1]
@@ -227,7 +227,7 @@ export default async function PostPage({ params }: Props) {
           {/* Tags */}
           <div className="mt-8 pt-8 border-t dark:border-gray-700">
             <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
+              {post.tags.map((tag: string) => (
                 <Badge
                   key={tag}
                   variant="outline"

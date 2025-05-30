@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,8 +20,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { uploadFile } from "@/lib/supabase";
-import { Loader2, ImagePlus } from "lucide-react";
+import { Loader2, ImagePlus, ArrowLeft } from "lucide-react";
 import { TinyEditor } from "@/components/TinyEditor";
+import { use } from "react";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -47,10 +48,12 @@ const generateSlug = (title: string): string => {
     .trim();
 };
 
-export default function AddProjectPage() {
+export default function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -59,6 +62,7 @@ export default function AddProjectPage() {
     control,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -77,6 +81,46 @@ export default function AddProjectPage() {
     const slug = generateSlug(title);
     setValue("slug", slug);
   };
+
+  // Fetch project data
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const response = await fetch(`/api/projects/${id}`);
+        if (!response.ok) {
+          throw new Error("Project not found");
+        }
+        const project = await response.json();
+        
+        // Populate form with existing data
+        reset({
+          title: project.title,
+          slug: project.slug,
+          excerpt: project.excerpt,
+          description: project.description,
+          thumbnail: project.thumbnail,
+          techStack: Array.isArray(project.techStack) ? project.techStack.join(', ') : project.techStack,
+          status: project.status,
+          isPinned: project.isPinned,
+          isHidden: project.isHidden,
+        });
+        
+        setThumbnailPreview(project.thumbnail);
+      } catch (error) {
+        console.error("Error fetching project:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load project data",
+          variant: "destructive",
+        });
+        router.push("/admin/projects");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProject();
+  }, [id, reset, router]);
 
   const handleImageUpload = async (file: File): Promise<string> => {
     try {
@@ -111,27 +155,27 @@ export default function AddProjectPage() {
         techStack: techStackArray,
       };
 
-      const response = await fetch("/api/projects", {
-        method: "POST",
+      const response = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(projectData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create project");
+        throw new Error("Failed to update project");
       }
 
       toast({
         title: "Success",
-        description: "Project created successfully",
+        description: "Project updated successfully",
       });
       router.push("/admin/projects");
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error("Error updating project:", error);
       toast({
         title: "Error",
         description:
-          error instanceof Error ? error.message : "Failed to create project",
+          error instanceof Error ? error.message : "Failed to update project",
         variant: "destructive",
       });
     } finally {
@@ -139,11 +183,30 @@ export default function AddProjectPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="mb-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create New Project</CardTitle>
+          <CardTitle className="text-2xl font-bold">Edit Project</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
@@ -327,10 +390,10 @@ export default function AddProjectPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Updating...
                 </>
               ) : (
-                "Create Project"
+                "Update Project"
               )}
             </Button>
           </CardFooter>
@@ -338,4 +401,4 @@ export default function AddProjectPage() {
       </Card>
     </div>
   );
-}
+} 

@@ -18,11 +18,14 @@ export async function uploadFile(
   file: File
 ): Promise<{ data: { publicUrl: string } | null; error: Error | null }> {
   try {
+    console.log('Upload params:', { bucket, path, fileName: file.name });
+    
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(path, file)
 
     if (uploadError) {
+      console.error('Upload error:', uploadError);
       return { data: null, error: uploadError }
     }
 
@@ -30,11 +33,13 @@ export async function uploadFile(
       .from(bucket)
       .getPublicUrl(path)
 
+    console.log('Upload success, publicUrl:', publicUrl);
     return { data: { publicUrl }, error: null }
-  } catch (error) {
+  } catch (err) {
+    console.error('Upload catch error:', err);
     return { 
       data: null, 
-      error: error instanceof Error ? error : new Error('Unknown error occurred') 
+      error: err instanceof Error ? err : new Error('Unknown error occurred') 
     }
   }
 }

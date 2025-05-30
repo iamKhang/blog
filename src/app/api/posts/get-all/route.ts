@@ -48,17 +48,17 @@ export async function GET(request: Request) {
     console.log("Where clause:", JSON.stringify(where, null, 2));
 
     try {
-      const [posts, total] = await Promise.all([
-        prisma.post.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: [
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [
             { isPinned: "desc" },
-            { createdAt: "desc" }
-          ],
-          select: {
-            id: true,
+          { createdAt: "desc" }
+        ],
+            select: {
+              id: true,
             title: true,
             slug: true,
             content: true,
@@ -72,27 +72,27 @@ export async function GET(request: Request) {
             tags: true,
             createdAt: true,
             updatedAt: true,
-            series: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-              },
+          series: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
             },
           },
-        }),
-        prisma.post.count({ where }),
-      ]);
-
-      return NextResponse.json({
-        posts,
-        metadata: {
-          total,
-          totalPages: Math.ceil(total / limit),
-          page,
-          limit,
         },
-      });
+      }),
+      prisma.post.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      posts,
+      metadata: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        page,
+        limit,
+      },
+    });
     } catch (dbError) {
       console.error("Database error:", dbError);
       if (dbError instanceof Prisma.PrismaClientKnownRequestError) {

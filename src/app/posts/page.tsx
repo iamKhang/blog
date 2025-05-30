@@ -19,7 +19,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Eye, Heart, Calendar, Tag, Clock } from "lucide-react";
+import { Eye, Heart, Calendar, Tag, Clock, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Series } from "@prisma/client";
 
 interface Post {
   id: string;
@@ -53,41 +55,43 @@ const PostCard = ({ post }: { post: Post }) => {
   };
 
   return (
-    <Card className="group flex flex-col h-full hover:shadow-lg transition-all duration-300 border border-gray-100">
-      <Link href={`/posts/${post.slug}`} className="flex flex-col h-full">
-        <CardHeader className="p-0 relative overflow-hidden">
-          {post.coverImage ? (
-            <div className="relative w-full h-48 overflow-hidden">
-              <Image
-                src={post.coverImage}
-                alt={post.title}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-          ) : (
-            <div className="w-full h-48 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-              <span className="text-gray-400 text-lg font-medium">No Image</span>
-            </div>
-          )}
-          {post.series && (
-            <Badge className="absolute top-2 left-2 bg-blue-500/90 hover:bg-blue-600/90">
-              {post.series.title}
-            </Badge>
-          )}
-        </CardHeader>
-        <CardContent className="flex-grow p-6">
-          <CardTitle className="text-xl font-bold mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-            {post.title}
+    <Card className="group flex w-full overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100">
+      <div className="w-1/4 min-w-[180px] relative">
+        {post.coverImage ? (
+          <div className="relative w-full h-full min-h-[200px]">
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        ) : (
+          <div className="w-full h-full min-h-[200px] bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+            <span className="text-gray-400 text-lg font-medium">No Image</span>
+          </div>
+        )}
+        {post.series && (
+          <Badge className="absolute top-2 left-2 bg-blue-500/90 hover:bg-blue-600/90">
+            {post.series.title}
+          </Badge>
+        )}
+      </div>
+      <div className="w-3/4 flex flex-col flex-1">
+        <CardHeader className="flex-grow">
+          <CardTitle className="text-xl font-bold mb-3 group-hover:text-blue-600 transition-colors">
+            <Link href={`/posts/${post.slug}`}>
+              {post.title}
+            </Link>
           </CardTitle>
-          <p className="text-gray-600 line-clamp-3 mb-4 text-sm">
+          <p className="text-gray-600 line-clamp-2 mb-4 text-sm">
             {post.excerpt}
           </p>
           
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-4">
-              {post.tags.slice(0, 3).map((tag, index) => (
+              {post.tags.slice(0, 3).map((tag: string, index: number) => (
                 <Badge key={index} variant="secondary" className="text-xs bg-gray-100 hover:bg-gray-200">
                   {tag}
                 </Badge>
@@ -105,45 +109,79 @@ const PostCard = ({ post }: { post: Post }) => {
             <Clock size={14} className="mr-1" />
             {timeAgo(post.createdAt)}
           </div>
-        </CardContent>
-      </Link>
-      <CardFooter className="flex justify-between items-center p-4 border-t bg-gray-50/50">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1 text-gray-500">
-            <Eye size={16} />
-            <span className="text-sm">{post.views}</span>
+        </CardHeader>
+        <CardFooter className="flex justify-between items-center p-4 border-t bg-gray-50/50">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1 text-gray-500">
+              <Eye size={16} />
+              <span className="text-sm">{post.views}</span>
+            </div>
+            <div className="flex items-center space-x-1 text-gray-500">
+              <Heart size={16} />
+              <span className="text-sm">{post.likes}</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-1 text-gray-500">
-            <Heart size={16} />
-            <span className="text-sm">{post.likes}</span>
-          </div>
-        </div>
-      </CardFooter>
+        </CardFooter>
+      </div>
     </Card>
   );
 };
 
+const SeriesCardHorizontal = ({ series }: { series: Series }) => (
+  <Card className="flex w-full overflow-hidden border border-gray-100 bg-white dark:bg-gray-800 hover:shadow-lg transition-all duration-300">
+    <div className="w-1/4 min-w-[180px] relative">
+      <Image
+        src={series.coverImage || "/placeholder-series.jpg"}
+        alt={series.title}
+        fill
+        className="object-cover"
+      />
+    </div>
+    <div className="w-3/4 flex flex-col flex-1">
+      <CardHeader className="flex-grow">
+        <CardTitle className="text-lg font-bold mb-2 group-hover:text-blue-600 transition-colors">
+          <Link href={`/series/${series.slug}`}>{series.title}</Link>
+        </CardTitle>
+        <p className="text-gray-600 line-clamp-2 mb-4 text-sm">
+          {series.description}
+        </p>
+      </CardHeader>
+      <CardFooter className="flex justify-between items-center p-4 border-t bg-gray-50/50">
+        <div className="flex items-center space-x-2 text-gray-500">
+          <BookOpen size={16} />
+          <span className="text-sm">{series.posts.length} posts</span>
+        </div>
+        <Button asChild variant="outline" className="ml-auto">
+          <Link href={`/series/${series.slug}`}>→ Xem thêm</Link>
+        </Button>
+      </CardFooter>
+    </div>
+  </Card>
+);
+
 const LoadingCard = () => (
-  <Card className="flex flex-col h-full">
-    <CardHeader className="p-0">
-      <div className="w-full h-48 bg-gray-200 animate-pulse" />
-    </CardHeader>
-    <CardContent className="flex-grow p-6">
-      <div className="h-6 bg-gray-200 rounded animate-pulse mb-3" />
-      <div className="h-4 bg-gray-200 rounded animate-pulse mb-2" />
-      <div className="h-4 bg-gray-200 rounded animate-pulse mb-4" />
-      <div className="flex gap-2 mb-4">
-        <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
-        <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
-      </div>
-      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-    </CardContent>
-    <CardFooter className="flex justify-between p-4 border-t">
-      <div className="flex space-x-4">
-        <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
-        <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
-      </div>
-    </CardFooter>
+  <Card className="flex overflow-hidden">
+    <div className="w-1/4">
+      <div className="w-full h-[200px] bg-gray-200 animate-pulse" />
+    </div>
+    <div className="w-3/4 flex flex-col">
+      <CardHeader className="flex-grow">
+        <div className="h-6 bg-gray-200 rounded animate-pulse mb-3" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse mb-2" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse mb-4" />
+        <div className="flex gap-2 mb-4">
+          <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
+          <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+      </CardHeader>
+      <CardFooter className="flex justify-between p-4 border-t">
+        <div className="flex space-x-4">
+          <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+          <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </CardFooter>
+    </div>
   </Card>
 );
 
@@ -204,7 +242,7 @@ export default function BlogPostsPage() {
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
               <span className="text-yellow-500">📌</span> Featured Posts
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="flex flex-col gap-6">
               {pinnedPosts.map((post) => (
                 <PostCard key={post.id} post={post} />
               ))}
@@ -217,7 +255,7 @@ export default function BlogPostsPage() {
           <h2 className="text-2xl font-semibold mb-6 text-gray-800">Latest Posts</h2>
           {regularPosts.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              <div className="flex flex-col gap-6 mb-8">
                 {regularPosts.map((post) => (
                   <PostCard key={post.id} post={post} />
                 ))}

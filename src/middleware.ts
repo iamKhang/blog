@@ -66,27 +66,27 @@ export async function middleware(request: NextRequest) {
       // Nếu token sắp hết hạn (còn 5 phút) và có refresh token, thử refresh
       if (decoded.exp && decoded.exp - currentTime < 300 && refreshToken) {
         try {
-          const response = await fetch(`${request.nextUrl.origin}/api/auth/refresh`, {
-            method: 'POST',
-            headers: {
-              'Cookie': `refreshToken=${refreshToken.value}`,
-            },
+        const response = await fetch(`${request.nextUrl.origin}/api/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Cookie': `refreshToken=${refreshToken.value}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const res = NextResponse.next()
+          
+          res.cookies.set({
+            name: 'accessToken',
+            value: data.accessToken,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 15 * 60,
           })
 
-          if (response.ok) {
-            const data = await response.json()
-            const res = NextResponse.next()
-            
-            res.cookies.set({
-              name: 'accessToken',
-              value: data.accessToken,
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              maxAge: 15 * 60,
-            })
-
-            return res
+          return res
           }
         } catch (error) {
           console.error('Token refresh failed:', error)

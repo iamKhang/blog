@@ -66,9 +66,6 @@ model Project {
   thumbnail     String
   techStack     String[]  @map("tech_stack")
   status        Boolean   @default(false) @map("status")
-  githubUrl     String[]  @map("github_url")
-  demoUrl       String?   @map("demo_url")
-  docsUrl       String?   @map("docs_url")
   views         Int       @default(0) @map("views")
   likes         Int       @default(0) @map("likes")
   isPinned      Boolean   @default(false) @map("is_pinned")
