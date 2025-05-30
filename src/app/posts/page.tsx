@@ -41,6 +41,20 @@ interface Post {
   } | null;
 }
 
+interface SeriesWithCount {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  coverImage: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    posts: number;
+  };
+}
+
 const PostCard = ({ post }: { post: Post }) => {
   const timeAgo = (date: string) => {
     const now = new Date();
@@ -55,8 +69,8 @@ const PostCard = ({ post }: { post: Post }) => {
   };
 
   return (
-    <Card className="group flex w-full overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100">
-      <div className="w-1/4 min-w-[180px] relative">
+    <Card className="group flex w-full overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100 bg-white">
+      <div className="hidden md:block w-1/4 min-w-[180px] relative">
         {post.coverImage ? (
           <div className="relative w-full h-full min-h-[200px]">
             <Image
@@ -77,7 +91,7 @@ const PostCard = ({ post }: { post: Post }) => {
           </Badge>
         )}
       </div>
-      <div className="w-3/4 flex flex-col flex-1">
+      <div className="w-full md:w-3/4 flex flex-col flex-1">
         <CardHeader className="flex-grow">
           <CardTitle className="text-xl font-bold mb-3 group-hover:text-blue-600 transition-colors">
             <Link href={`/posts/${post.slug}`}>
@@ -127,9 +141,9 @@ const PostCard = ({ post }: { post: Post }) => {
   );
 };
 
-const SeriesCardHorizontal = ({ series }: { series: Series }) => (
-  <Card className="flex w-full overflow-hidden border border-gray-100 bg-white dark:bg-gray-800 hover:shadow-lg transition-all duration-300">
-    <div className="w-1/4 min-w-[180px] relative">
+const SeriesCardHorizontal = ({ series }: { series: SeriesWithCount }) => (
+  <Card className="flex w-full overflow-hidden border border-gray-100 bg-white hover:shadow-lg transition-all duration-300">
+    <div className="hidden md:block w-1/4 min-w-[180px] relative">
       <Image
         src={series.coverImage || "/placeholder-series.jpg"}
         alt={series.title}
@@ -137,7 +151,7 @@ const SeriesCardHorizontal = ({ series }: { series: Series }) => (
         className="object-cover"
       />
     </div>
-    <div className="w-3/4 flex flex-col flex-1">
+    <div className="w-full md:w-3/4 flex flex-col flex-1">
       <CardHeader className="flex-grow">
         <CardTitle className="text-lg font-bold mb-2 group-hover:text-blue-600 transition-colors">
           <Link href={`/series/${series.slug}`}>{series.title}</Link>
@@ -149,7 +163,7 @@ const SeriesCardHorizontal = ({ series }: { series: Series }) => (
       <CardFooter className="flex justify-between items-center p-4 border-t bg-gray-50/50">
         <div className="flex items-center space-x-2 text-gray-500">
           <BookOpen size={16} />
-          <span className="text-sm">{series.posts.length} posts</span>
+          <span className="text-sm">{series._count.posts} posts</span>
         </div>
         <Button asChild variant="outline" className="ml-auto">
           <Link href={`/series/${series.slug}`}>→ Xem thêm</Link>
@@ -187,30 +201,38 @@ const LoadingCard = () => (
 
 export default function BlogPostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [series, setSeries] = useState<SeriesWithCount[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const postsPerPage = 8;
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/posts/get-all?page=${currentPage}&limit=${postsPerPage}&published=true`
-        );
-        if (!response.ok) throw new Error("Failed to fetch posts");
-        const data = await response.json();
-        setPosts(data.posts);
-        setTotalPages(data.metadata.totalPages);
+        const [postsResponse, seriesResponse] = await Promise.all([
+          fetch(`/api/posts/get-all?page=${currentPage}&limit=${postsPerPage}&published=true`),
+          fetch('/api/series?limit=4')
+        ]);
+
+        if (!postsResponse.ok) throw new Error("Failed to fetch posts");
+        if (!seriesResponse.ok) throw new Error("Failed to fetch series");
+
+        const postsData = await postsResponse.json();
+        const seriesData = await seriesResponse.json();
+
+        setPosts(postsData.posts);
+        setTotalPages(postsData.metadata.totalPages);
+        setSeries(seriesData.series);
       } catch (error) {
-        console.error("Error fetching posts:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPosts();
+    fetchData();
   }, [currentPage]);
 
   const pinnedPosts = posts.filter((post) => post.isPinned);
@@ -232,7 +254,7 @@ export default function BlogPostsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-gray-900">Blog Posts</h1>
 
@@ -251,7 +273,7 @@ export default function BlogPostsPage() {
         )}
 
         {/* Regular Posts */}
-        <section>
+        <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-6 text-gray-800">Latest Posts</h2>
           {regularPosts.length > 0 ? (
             <>
@@ -319,6 +341,20 @@ export default function BlogPostsPage() {
             </div>
           )}
         </section>
+
+        {/* Series Section */}
+        {series.length > 0 && (
+          <section>
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
+              <span className="text-blue-500">📚</span> Series
+            </h2>
+            <div className="flex flex-col gap-6">
+              {series.map((s) => (
+                <SeriesCardHorizontal key={s.id} series={s} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
