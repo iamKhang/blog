@@ -12,12 +12,18 @@ interface Skill {
 }
 
 const skills: Skill[] = [
-  { name: "JavaScript", level: 90, category: "Frontend", icon: "/language/javascript.svg" },
-  { name: "React", level: 85, category: "Frontend", icon: "/language/reactjs.svg" },
+  { name: "JavaScript", level: 60, category: "Frontend", icon: "/language/javascript.svg" },
+  { name: "React", level: 70, category: "Frontend", icon: "/language/reactjs.svg" },
   { name: "Node.js", level: 75, category: "Backend", icon: "/language/nodejs.svg" },
-  { name: "Python", level: 65, category: "Backend", icon: "/language/python.svg" },
-  { name: "MongoDB", level: 70, category: "Database", icon: "/language/mongodb.svg" },
-  { name: "PostgreSQL", level: 80, category: "Database", icon: "/language/pgsql.svg" },
+  { name: "MongoDB", level: 50, category: "Database", icon: "/language/mongodb.svg" },
+  { name: "PostgreSQL", level: 50, category: "Database", icon: "/language/pgsql.svg" },
+  { name: "Next.js", level: 50, category: "Frontend", icon: "/language/nextjs.svg" },
+  { name: "Java", level: 90, category: "Backend", icon: "/language/java.svg" },
+  { name: "Spring Boot", level: 90, category: "Backend", icon: "/language/spring.svg" },
+  { name: "NestJS", level: 60, category: "Backend", icon: "/language/nest.svg" },
+  { name: "MySQL", level: 60, category: "Database", icon: "/language/mysql.svg" },
+  { name: "Docker", level: 50, category: "DevOps", icon: "/tools/docker.svg" },
+  
 ]
 
 const categories = Array.from(new Set(skills.map(skill => skill.category)))
@@ -44,7 +50,11 @@ export function SkillsSection() {
         <div className="flex flex-wrap justify-center gap-2 mb-10">
           <Badge 
             variant={selectedCategory === null ? "default" : "secondary"}
-            className="cursor-pointer bg-blue-900 hover:bg-blue-800"
+            className={`cursor-pointer ${
+              selectedCategory === null 
+                ? "bg-blue-900 text-white hover:bg-blue-800" 
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
             onClick={() => setSelectedCategory(null)}
           >
             All Skills
@@ -53,7 +63,11 @@ export function SkillsSection() {
             <Badge
               key={category}
               variant={selectedCategory === category ? "default" : "secondary"}
-              className="cursor-pointer"
+              className={`cursor-pointer ${
+                selectedCategory === category 
+                  ? "bg-blue-900 text-white hover:bg-blue-800" 
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
               onClick={() => setSelectedCategory(category)}
             >
               {category}

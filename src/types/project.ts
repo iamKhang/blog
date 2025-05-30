@@ -7,11 +7,12 @@ export interface Technology {
 export interface Project {
   id: string
   title: string
+  slug: string
   description: string
   excerpt: string
   thumbnail: string
-  technologies: Technology[]
-  status: 'COMPLETED' | 'IN_PROGRESS' | 'PLANNED'
+  techStack: string[]
+  status: boolean
   githubUrl?: string
   demoUrl?: string
   docsUrl?: string

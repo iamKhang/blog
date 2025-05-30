@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { ProjectCard } from '@/components/project-card'
-import type { Project, ProjectsResponse } from '@/types/project'
+import type { Project } from '@/types/project'
 
 export function ProjectShowcase() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -17,7 +17,7 @@ export function ProjectShowcase() {
         setLoading(true)
         setError(null)
 
-        const response = await fetch('/api/projects?page=1&limit=4')
+        const response = await fetch('/api/projects?page=1&limit=3')
 
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -30,11 +30,18 @@ export function ProjectShowcase() {
           throw new Error('Invalid data structure returned from API')
         }
 
-        setProjects(data.projects)
+        // Lọc ra các project được ghim và sắp xếp theo thời gian tạo mới nhất
+        const pinnedProjects = data.projects
+          .filter((project: Project) => project.isPinned && !project.isHidden)
+          .sort((a: Project, b: Project) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+          .slice(0, 3)
+
+        setProjects(pinnedProjects)
       } catch (error) {
         console.error('Error fetching projects:', error)
         setError(error instanceof Error ? error.message : 'Unknown error occurred')
-        // Đặt mảng rỗng để tránh lỗi khi render
         setProjects([])
       } finally {
         setLoading(false)
@@ -54,7 +61,6 @@ export function ProjectShowcase() {
     )
   }
 
-  // Hiển thị thông báo lỗi nếu có
   if (error) {
     return (
       <section className="py-16 bg-gradient-to-b from-transparent to-blue-900/5">
@@ -75,34 +81,27 @@ export function ProjectShowcase() {
     )
   }
 
-  // Kiểm tra dữ liệu trước khi render
-  const filteredProjects = projects && Array.isArray(projects)
-    ? projects.filter(p => p && typeof p === 'object' && !p.isHidden && p.isPinned)
-    : [];
-
   return (
     <section className="py-16 bg-gradient-to-b from-transparent to-blue-900/5">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-blue-900 mb-8 text-center">
           Featured Projects
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredProjects.length > 0 ? (
-            filteredProjects
-              .slice(0, 4)
-              .map((project) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <ProjectCard project={project} />
-                </motion.div>
-              ))
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.length > 0 ? (
+            projects.map((project) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <ProjectCard project={project} />
+              </motion.div>
+            ))
           ) : (
             <div className="col-span-full text-center py-8">
-              <p className="text-gray-500">No projects found. Add some projects to see them here.</p>
+              <p className="text-gray-500">No featured projects found.</p>
             </div>
           )}
         </div>

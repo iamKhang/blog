@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Github, ExternalLink } from "lucide-react"
+import { ArrowRight, Eye, ThumbsUp } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Project } from "@/types/project" // Bạn nên tạo file types riêng
+import { Project } from "@/types/project"
 
 interface ProjectCardProps {
   project: Project
@@ -16,7 +16,7 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
   const [showAllTech, setShowAllTech] = useState(false);
   const router = useRouter();
-  const hiddenCount = project.technologies.length - 4;
+  const hiddenCount = project.techStack.length - 4;
 
   return (
     <Card className="group h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
@@ -45,17 +45,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
               "flex flex-wrap gap-1.5 transition-all duration-300",
               !showAllTech && "max-h-5 overflow-hidden"
             )}>
-              {project.technologies.map((tech) => (
+              {project.techStack.map((tech, index) => (
                 <div 
-                  key={tech.id} 
-                  className="h-5 flex-shrink-0 hover:scale-105 transition-transform"
+                  key={index} 
+                  className="px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600"
                 >
-                  <img 
-                    src={tech.url}
-                    alt={tech.name}
-                    className="h-full w-auto"
-                    style={{ maxWidth: '100px' }}
-                  />
+                  {tech}
                 </div>
               ))}
             </div>
@@ -75,33 +70,24 @@ export function ProjectCard({ project }: ProjectCardProps) {
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-auto">
-          <Button 
-            variant="link" 
-            className="p-0 h-auto text-blue-900 hover:text-[#EC8305]"
-            onClick={() => router.push(`/projects/${project.id}`)}
-          >
-            Read More
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-
-          <div className="flex gap-2">
-            {project.githubUrl && (
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild>
-                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                  <Github className="h-4 w-4" />
-                </a>
-              </Button>
-            )}
-            {project.demoUrl && (
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild>
-                <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </Button>
-            )}
-          </div>
+        <div className="flex items-center text-sm text-gray-500 space-x-4 mb-4">
+          <span className="flex items-center">
+            <Eye className="w-4 h-4 mr-1" />
+            {project.views || 0}
+          </span>
+          <span className="flex items-center">
+            <ThumbsUp className="w-4 h-4 mr-1" />
+            {project.likes || 0}
+          </span>
         </div>
+
+        <Button 
+          className="w-full bg-blue-900 hover:bg-blue-800"
+          onClick={() => router.push(`/projects/${project.slug}`)}
+        >
+          Read More
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </CardContent>
     </Card>
   );

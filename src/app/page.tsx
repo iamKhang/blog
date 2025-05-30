@@ -28,6 +28,7 @@ const languageIcons = [
   "/language/spring.svg",
   "/language/tailwind.svg",
   "/language/typescript.svg",
+  "/language/nest.svg",
 ];
 
 const toolIcons = [
