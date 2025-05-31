@@ -42,13 +42,11 @@ export async function POST(request: NextRequest) {
     
     // Tìm session hợp lệ với transaction để tránh race condition
     const result = await prisma.$transaction(async (tx) => {
+      // Tìm session với refresh token này
       const session = await tx.session.findFirst({
         where: {
           refreshToken,
           isValid: true,
-          expiresAt: {
-            gt: new Date() // Chỉ lấy session chưa hết hạn
-          }
         },
         include: {
           user: true
@@ -74,13 +72,24 @@ export async function POST(request: NextRequest) {
         return null;
       }
 
+      // Kiểm tra thời gian hết hạn
+      const now = new Date();
+      if (session.expiresAt < now) {
+        console.error("Session expired");
+        await tx.session.update({
+          where: { id: session.id },
+          data: { isValid: false }
+        });
+        return null;
+      }
+
       console.log('🔄 Found valid session:', session.id);
 
       // Tạo tokens mới
       const tokens = generateTokens(session.user);
       console.log('🔄 Generated new tokens');
 
-      // Cập nhật session hiện tại với refresh token mới thay vì tạo mới
+      // Cập nhật session hiện tại với refresh token mới
       const updatedSession = await tx.session.update({
         where: { id: session.id },
         data: {
@@ -116,7 +125,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Set refresh token cookie với SameSite lax thay vì strict
+    // Set refresh token cookie với cấu hình đầy đủ
     response.cookies.set({
       name: 'refreshToken',
       value: result.tokens.refreshToken,
@@ -124,7 +133,20 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/'
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined
+    });
+
+    // Set access token cookie
+    response.cookies.set({
+      name: 'accessToken',
+      value: result.tokens.accessToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60, // 15 minutes
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined
     });
 
     console.log("✅ Token refresh successful for user:", result.user.id);

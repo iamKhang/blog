@@ -45,8 +45,8 @@ export async function GET(request: Request) {
       ],
     };
 
-    console.log("Query parameters:", { page, limit, search, tag, published });
-    console.log("Where clause:", JSON.stringify(where, null, 2));
+    // console.log("Query parameters:", { page, limit, search, tag, published });
+    // console.log("Where clause:", JSON.stringify(where, null, 2));
 
     try {
     const [posts, total] = await Promise.all([

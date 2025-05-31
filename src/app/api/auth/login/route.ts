@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       { status: 200 }
     );
 
-    // Set cookies với cùng cấu hình như refresh route
+    // Set cookies với cấu hình đầy đủ
     response.cookies.set({
       name: 'accessToken',
       value: accessToken,
@@ -88,7 +88,8 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 15 * 60, // 15 minutes
-      path: '/'
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined
     });
 
     response.cookies.set({
@@ -98,7 +99,8 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/'
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined
     });
 
     console.log("Login successful for user:", user.id);

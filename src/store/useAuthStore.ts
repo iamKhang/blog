@@ -52,10 +52,22 @@ export const useAuthStore = create<AuthState>()(
           const decoded = jwtDecode(accessToken);
           const currentTime = Date.now() / 1000;
           
-          // Nếu token sắp hết hạn trong vòng 1 phút (60 giây)
-          if (decoded.exp && decoded.exp - currentTime < 60) {
-            console.log('🔄 Token expiring soon, refreshing...');
-            get().refreshToken();
+          if (decoded.exp) {
+            const timeUntilExpiry = decoded.exp - currentTime;
+            console.log('🔍 Token Debug:', {
+              currentTime: new Date(currentTime * 1000).toISOString(),
+              tokenExpiry: new Date(decoded.exp * 1000).toISOString(),
+              timeUntilExpiry: timeUntilExpiry,
+              minutesUntilExpiry: Math.floor(timeUntilExpiry / 60)
+            });
+            
+            // Nếu token sắp hết hạn trong vòng 5 phút (300 giây)
+            if (timeUntilExpiry < 300) {
+              console.log('🔄 Token expiring soon, refreshing...');
+              get().refreshToken();
+            } else {
+              console.log('✅ Token still valid, no refresh needed');
+            }
           }
         } catch (error) {
           console.error('❌ Token decode error:', error);
@@ -74,7 +86,7 @@ export const useAuthStore = create<AuthState>()(
         // Kiểm tra token ngay lập tức
         get().checkTokenExpiry();
 
-        // Set up new interval - kiểm tra mỗi 30 giây
+        // Set up new interval - kiểm tra mỗi 5 phút
         refreshInterval = setInterval(() => {
           const { isAuthenticated, isRefreshing } = get();
           
@@ -90,9 +102,9 @@ export const useAuthStore = create<AuthState>()(
           }
 
           get().checkTokenExpiry();
-        }, 30000); // 30 seconds
+        }, 300000); // 5 minutes
 
-        console.log('🔄 Auto refresh interval set for 30 seconds');
+        console.log('🔄 Auto refresh interval set for 5 minutes');
       },
 
       stopAutoRefresh: () => {
@@ -211,6 +223,11 @@ export const useAuthStore = create<AuthState>()(
             console.log('🔄 Starting token refresh request...');
             set({ isRefreshing: true });
 
+            // Debug: Log current refresh token from cookie
+            const cookies = document.cookie.split(';');
+            const refreshTokenCookie = cookies.find(cookie => cookie.trim().startsWith('refreshToken='));
+            console.log('🔍 Current refresh token:', refreshTokenCookie ? refreshTokenCookie.split('=')[1] : 'Not found');
+
             const response = await fetch('/api/auth/refresh', {
               method: 'POST',
               credentials: 'include',
@@ -219,7 +236,8 @@ export const useAuthStore = create<AuthState>()(
             const data = await response.json();
             console.log('🔄 Refresh response:', {
               status: response.status,
-              ok: response.ok
+              ok: response.ok,
+              data: data
             });
 
             if (!response.ok) {
@@ -236,6 +254,7 @@ export const useAuthStore = create<AuthState>()(
               user: data.user,
               accessToken: data.accessToken,
               isAuthenticated: true,
+              isRefreshing: false
             });
 
             console.log('✅ Token refresh completed successfully');
