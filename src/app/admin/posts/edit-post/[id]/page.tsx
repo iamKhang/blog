@@ -339,16 +339,16 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 control={control}
                 render={({ field }) => (
                   <Select
-                    value={field.value || ""}
+                    value={field.value || "none"}
                     onValueChange={(value) => {
-                      field.onChange(value === "" ? null : value);
+                      field.onChange(value === "none" ? null : value);
                     }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a series (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {seriesData.series.map((series: any) => (
                         <SelectItem key={series.id} value={series.id}>
                           {series.title}

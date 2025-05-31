@@ -86,7 +86,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await fetch(`/api/projects/${id}`);
+        const response = await fetch(`/api/projects/admin/${id}`);
         if (!response.ok) {
           throw new Error("Project not found");
         }
@@ -155,7 +155,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
         techStack: techStackArray,
       };
 
-      const response = await fetch(`/api/projects/${id}`, {
+      const response = await fetch(`/api/projects/admin/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(projectData),
@@ -196,7 +196,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
       <div className="mb-6">
         <Button
           variant="ghost"
-          onClick={() => router.back()}
+          onClick={() => router.push("/admin/projects")}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />

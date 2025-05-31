@@ -1,127 +1,223 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Github, ExternalLink, ArrowLeft } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-
-interface Technology {
-  id: string;
-  name: string;
-  url: string;
-}
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import Image from 'next/image'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Loader2, Github, ExternalLink, ThumbsUp, Eye, Calendar } from 'lucide-react'
+import { format } from 'date-fns'
+import { PostContent } from '@/components/PostContent'
 
 interface Project {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  description: string;
-  thumbnail: string;
-  techStack: string[];
-  status: boolean;
-  views: number;
-  likes: number;
-  isPinned: boolean;
-  isHidden: boolean;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  description: string
+  thumbnail: string
+  techStack: string[]
+  status: boolean
+  views: number
+  likes: number
+  isPinned: boolean
+  isHidden: boolean
+  createdAt: string
+  updatedAt: string
 }
 
-export default function ProjectDetail({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+export default function ProjectDetailPage() {
+  const params = useParams()
+  const [project, setProject] = useState<Project | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProject = async () => {
+      if (!params.slug) {
+        console.error('No slug provided');
+        setError('Invalid project URL');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch(`/api/projects/slug/${slug}`);
-        if (!response.ok) {
-          throw new Error('Project not found');
-        }
+        console.log('Fetching project with slug:', params.slug);
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(`/api/projects/${params.slug}`);
         const data = await response.json();
+        
+        console.log('API Response:', {
+          status: response.status,
+          ok: response.ok,
+          data: data
+        });
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load project');
+        }
+
+        if (!data || !data.id) {
+          throw new Error('Invalid project data received');
+        }
+
         setProject(data);
       } catch (error) {
         console.error('Error fetching project:', error);
-        router.push('/projects');
+        setError(error instanceof Error ? error.message : 'Failed to load project');
       } finally {
         setLoading(false);
       }
     };
 
     fetchProject();
-  }, [slug, router]);
+  }, [params.slug]);
 
   if (loading) {
-    return <div className="container mx-auto py-8">Loading...</div>;
+    return (
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto flex justify-center items-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
   }
 
-  if (!project) {
-    return null;
+  if (error || !project) {
+    return (
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+            <p className="text-gray-600">{error || 'Project not found'}</p>
+            <p className="text-sm text-gray-500 mt-2">
+              The project you're looking for might not exist or has been removed.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Button
-        variant="ghost"
-        className="mb-6"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Quay lại
-      </Button>
+    <article className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Hero Section with Thumbnail */}
+      <div className="relative w-full h-[40vh] min-h-[400px] bg-navy-900">
+        <Image
+          src={project.thumbnail}
+          alt={project.title}
+          fill
+          className="object-cover opacity-20"
+          priority
+        />
 
-      <Card className="overflow-hidden">
-        <div className="relative h-[400px] w-full">
-          <Image
-            src={project.thumbnail}
-            alt={project.title}
-            fill
-            className="object-cover"
-          />
+        {/* Overlay Content */}
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 to-transparent" />
+        <div className="container relative h-full max-w-7xl mx-auto px-4 flex flex-col justify-end pb-12">
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {project.techStack.map((tech) => (
+                <Badge
+                  key={tech}
+                  className="bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 transition-colors"
+                >
+                  {tech}
+                </Badge>
+              ))}
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
+              {project.title}
+            </h1>
+            <div className="flex items-center gap-6 text-gray-300">
+              <time className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                {format(new Date(project.createdAt), "dd/MM/yyyy")}
+              </time>
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4" />
+                {project.views} lượt xem
+              </div>
+              <div className="flex items-center gap-2">
+                <ThumbsUp className="w-4 h-4" />
+                {project.likes} lượt thích
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-3xl font-bold">{project.title}</h1>
+      </div>
+
+      {/* Main Content */}
+      <div className="container max-w-7xl mx-auto px-4 py-12">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
+          {/* Status Badge */}
+          <div className="mb-8">
             <Badge variant={project.status ? "default" : "secondary"}>
               {project.status ? "Completed" : "In Progress"}
             </Badge>
           </div>
 
-          <div className="flex gap-2 mb-6">
-            {Array.isArray(project.techStack)
-              ? project.techStack.map((tech: string, idx: number) => (
-                  <Badge key={idx} variant="outline">{tech.trim()}</Badge>
-                ))
-              : typeof project.techStack === 'string'
-                ? (project.techStack as string).split(',').map((tech: string, idx: number) => (
-                    <Badge key={idx} variant="outline">{tech.trim()}</Badge>
-                  ))
-                : null}
+          {/* Excerpt */}
+          <div className="prose dark:prose-invert max-w-none mb-8">
+            <p className="text-xl text-gray-600 dark:text-gray-300">
+              {project.excerpt}
+            </p>
           </div>
 
-          <p className="text-lg text-muted-foreground mb-6">
-            {project.excerpt}
-          </p>
+          {/* Description */}
+          <div className="prose dark:prose-invert max-w-none">
+            <PostContent content={project.description} />
+          </div>
 
-          <div 
-            className="prose prose-lg dark:prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: project.description }}
-          />
-          
-          <div className="mt-6 pt-6 border-t flex items-center gap-4 text-sm text-muted-foreground">
-            <span>Views: {project.views}</span>
-            <span>Likes: {project.likes}</span>
-            <span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
+          {/* Tech Stack */}
+          <div className="mt-8 pt-8 border-t dark:border-gray-700">
+            <div className="flex flex-wrap gap-2">
+              {project.techStack.map((tech) => (
+                <Badge
+                  key={tech}
+                  variant="outline"
+                  className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  {tech}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Interaction Buttons */}
+          <div className="mt-8 pt-8 border-t dark:border-gray-700 flex justify-center gap-4">
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex items-center gap-2 min-w-[140px]"
+            >
+              <Eye className="w-5 h-5" />
+              <span>{project.views} lượt xem</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex items-center gap-2 min-w-[140px]"
+            >
+              <ThumbsUp className="w-5 h-5" />
+              <span>{project.likes} lượt thích</span>
+            </Button>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-8 flex justify-center gap-4">
+            <Button className="flex items-center gap-2">
+              <Github className="w-5 h-5" />
+              View Source
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <ExternalLink className="w-5 h-5" />
+              Live Demo
+            </Button>
           </div>
         </div>
-      </Card>
-    </div>
+      </div>
+    </article>
   );
 } 

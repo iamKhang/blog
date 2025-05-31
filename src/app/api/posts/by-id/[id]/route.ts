@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 interface Props {
@@ -16,8 +16,9 @@ const PostUpdateSchema = z.object({
   coverImage: z.string().optional(),
   isPinned: z.boolean().default(false),
   isHidden: z.boolean().default(false),
-  categoryIds: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
+  tags: z.string().transform(val => 
+    val.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+  ),
   seriesId: z.string().nullable(),
   orderInSeries: z.number().int().nullable(),
   slug: z.string(),
@@ -25,10 +26,13 @@ const PostUpdateSchema = z.object({
 
 export async function GET(request: Request, { params }: Props) {
   try {
+    if (!prisma) {
+      throw new Error("Prisma client is not initialized");
+    }
+
     const post = await prisma.post.findUnique({
       where: { id: params.id },
       include: {
-        categories: true,
         series: true,
       },
     });
@@ -58,72 +62,86 @@ export async function GET(request: Request, { params }: Props) {
 
 export async function PATCH(request: Request, { params }: Props) {
   try {
-    const body = await request.json();
-    const validatedData = PostUpdateSchema.parse(body);
-
-    // Kiểm tra xem post có tồn tại không
-    const existingPost = await prisma.post.findUnique({
-      where: { id: params.id },
-    });
-
-    if (!existingPost) {
-      return NextResponse.json(
-        { message: "Post not found" },
-        { status: 404 }
-      );
+    if (!prisma) {
+      throw new Error("Prisma client is not initialized");
     }
 
-    // Kiểm tra xem slug mới có trùng với bài viết khác không
-    if (validatedData.slug !== existingPost.slug) {
-      const postWithSlug = await prisma.post.findFirst({
+    const body = await request.json();
+    console.log('Request body:', body); // Log request body
+
+    try {
+      const validatedData = PostUpdateSchema.parse(body);
+      console.log('Validated data:', validatedData); // Log validated data
+
+      // Kiểm tra xem post có tồn tại không
+      const existingPost = await prisma.post.findUnique({
+        where: { id: params.id },
+      });
+
+      if (!existingPost) {
+        return NextResponse.json(
+          { message: "Post not found" },
+          { status: 404 }
+        );
+      }
+
+      // Kiểm tra xem slug mới có trùng với bài viết khác không
+      if (validatedData.slug !== existingPost.slug) {
+        const postWithSlug = await prisma.post.findFirst({
+          where: {
+            slug: validatedData.slug,
+            id: { not: params.id },
+          },
+        });
+
+        if (postWithSlug) {
+          return NextResponse.json(
+            { message: "Slug already exists" },
+            { status: 400 }
+          );
+        }
+      }
+
+      const updatedPost = await prisma.post.update({
         where: {
+          id: params.id,
+        },
+        data: {
+          title: validatedData.title,
           slug: validatedData.slug,
-          id: { not: params.id },
+          content: validatedData.content,
+          excerpt: validatedData.excerpt,
+          coverImage: validatedData.coverImage,
+          isPinned: validatedData.isPinned,
+          isHidden: validatedData.isHidden,
+          tags: validatedData.tags || [],
+          seriesId: validatedData.seriesId,
+          orderInSeries: validatedData.orderInSeries,
+        },
+        include: {
+          series: true,
         },
       });
 
-      if (postWithSlug) {
+      return NextResponse.json(updatedPost);
+    } catch (validationError) {
+      console.error('Validation error:', validationError);
+      if (validationError instanceof z.ZodError) {
         return NextResponse.json(
-          { message: "Slug already exists" },
+          { 
+            message: "Invalid request data", 
+            errors: validationError.errors.map(err => ({
+              path: err.path.join('.'),
+              message: err.message
+            }))
+          },
           { status: 400 }
         );
       }
+      throw validationError;
     }
-
-    const updatedPost = await prisma.post.update({
-      where: {
-        id: params.id,
-      },
-      data: {
-        title: validatedData.title,
-        slug: validatedData.slug,
-        content: validatedData.content,
-        excerpt: validatedData.excerpt,
-        coverImage: validatedData.coverImage,
-        isPinned: validatedData.isPinned,
-        isHidden: validatedData.isHidden,
-        categoryIds: validatedData.categoryIds || [],
-        tags: validatedData.tags || [],
-        seriesId: validatedData.seriesId,
-        orderInSeries: validatedData.orderInSeries,
-      },
-      include: {
-        categories: true,
-        series: true,
-      },
-    });
-
-    return NextResponse.json(updatedPost);
   } catch (error) {
     console.error("[POST_PATCH]", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { message: "Invalid request data", errors: error.errors },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

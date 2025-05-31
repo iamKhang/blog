@@ -61,6 +61,8 @@ export async function POST(request: Request) {
       data: {
         userId: user.id,
         refreshToken,
+        userAgent: request.headers.get("user-agent") || undefined,
+        ipAddress: request.headers.get("x-forwarded-for") || undefined,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         isValid: true,
       },
@@ -70,12 +72,35 @@ export async function POST(request: Request) {
     // Loại bỏ password trước khi trả về response
     const { password: _, ...userWithoutPassword } = user;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: "Đăng ký thành công",
       user: userWithoutPassword,
       accessToken,
-      refreshToken,
     });
+
+    // Set cookies với cùng cấu hình như login và refresh routes
+    response.cookies.set({
+      name: 'accessToken',
+      value: accessToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60, // 15 minutes
+      path: '/'
+    });
+
+    response.cookies.set({
+      name: 'refreshToken',
+      value: refreshToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/'
+    });
+
+    console.log("Registration successful for user:", user.id);
+    return response;
 
   } catch (error) {
     if (error instanceof z.ZodError) {

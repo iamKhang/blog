@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const tag = searchParams.get("tag") || "";
     const published = searchParams.get("published") || "true";
+    const isPinned = searchParams.get("isPinned") || "false";
 
     // Validate input parameters
     if (isNaN(page) || page < 1) {
