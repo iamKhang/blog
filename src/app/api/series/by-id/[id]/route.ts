@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Schema validation for request body
@@ -20,9 +20,10 @@ const SeriesUpdateSchema = z.object({
 // GET /api/series/by-id/[id] - Get a specific series by ID
 export async function GET(request: Request, { params }: Props) {
   try {
+    const { id } = await params;
     const series = await prisma.series.findUnique({
       where: {
-        id: params.id,
+        id,
       },
       include: {
         posts: {
@@ -61,12 +62,13 @@ export async function GET(request: Request, { params }: Props) {
 // PATCH /api/series/by-id/[id] - Update a specific series
 export async function PATCH(request: Request, { params }: Props) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const validatedData = SeriesUpdateSchema.parse(body);
 
     // Check if series exists
     const existingSeries = await prisma.series.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingSeries) {
@@ -81,7 +83,7 @@ export async function PATCH(request: Request, { params }: Props) {
       const seriesWithSlug = await prisma.series.findFirst({
         where: {
           slug: validatedData.slug,
-          id: { not: params.id },
+          id: { not: id },
         },
       });
 
@@ -95,7 +97,7 @@ export async function PATCH(request: Request, { params }: Props) {
 
     const updatedSeries = await prisma.series.update({
       where: {
-        id: params.id,
+        id,
       },
       data: {
         title: validatedData.title,
@@ -134,9 +136,10 @@ export async function PATCH(request: Request, { params }: Props) {
 // DELETE /api/series/by-id/[id] - Delete a specific series
 export async function DELETE(request: Request, { params }: Props) {
   try {
+    const { id } = await params;
     // Check if series exists
     const existingSeries = await prisma.series.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         posts: true,
       },
@@ -153,7 +156,7 @@ export async function DELETE(request: Request, { params }: Props) {
     if (existingSeries.posts.length > 0) {
       await prisma.post.updateMany({
         where: {
-          seriesId: params.id,
+          seriesId: id,
         },
         data: {
           seriesId: null,
@@ -165,7 +168,7 @@ export async function DELETE(request: Request, { params }: Props) {
     // Delete the series
     await prisma.series.delete({
       where: {
-        id: params.id,
+        id,
       },
     });
 

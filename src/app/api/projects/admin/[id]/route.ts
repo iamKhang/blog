@@ -4,17 +4,18 @@ import prisma from "@/lib/prisma";
 // GET - Lấy thông tin project theo ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('Fetching project with ID:', params.id);
+    const { id } = await params;
+    console.log('Fetching project with ID:', id);
 
     const project = await prisma.project.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!project) {
-      console.log('Project not found with ID:', params.id);
+      console.log('Project not found with ID:', id);
       return NextResponse.json(
         { error: "Project not found" },
         { status: 404 }
@@ -34,14 +35,15 @@ export async function GET(
 // PUT - Cập nhật project
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const data = await request.json();
-    console.log('Updating project with ID:', params.id);
+    console.log('Updating project with ID:', id);
 
     const project = await prisma.project.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title: data.title,
         slug: data.slug,
@@ -68,13 +70,14 @@ export async function PUT(
 // DELETE - Xóa project
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('Deleting project with ID:', params.id);
+    const { id } = await params;
+    console.log('Deleting project with ID:', id);
 
     await prisma.project.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: "Project deleted successfully" });

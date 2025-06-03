@@ -66,10 +66,10 @@ export default function PostPage() {
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to load post');
-        }
+    }
 
         setPost(data);
-      } catch (error) {
+  } catch (error) {
         console.error('Error fetching post:', error);
         setError(error instanceof Error ? error.message : 'Failed to load post');
       } finally {

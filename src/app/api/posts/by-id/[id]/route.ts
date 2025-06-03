@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Schema validation cho request body

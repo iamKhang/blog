@@ -3,20 +3,21 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    console.log('Fetching project with slug:', params.slug);
+    const { slug } = await params;
+    console.log('Fetching project with slug:', slug);
 
     const project = await prisma.project.findUnique({
       where: { 
-        slug: params.slug,
+        slug,
         isHidden: false // Chỉ lấy project không bị ẩn
       },
     });
 
     if (!project) {
-      console.log('Project not found with slug:', params.slug);
+      console.log('Project not found with slug:', slug);
       return NextResponse.json(
         { error: "Project not found" },
         { status: 404 }

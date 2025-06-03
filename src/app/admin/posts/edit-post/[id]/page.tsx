@@ -164,7 +164,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         if (!postId) throw new Error("Post ID is required");
         console.log("Updating post with ID:", postId); // Debug log
         
-        let imageUrl = coverImage
+        const imageUrl = coverImage
           ? await handleImageUpload(coverImage)
           : post.coverImage;
 

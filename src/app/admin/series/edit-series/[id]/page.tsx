@@ -25,9 +25,9 @@ import { Loader2, ImagePlus, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 const formSchema = z.object({
@@ -38,7 +38,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function EditSeriesPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditSeriesPage({ params }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,7 +99,7 @@ export default function EditSeriesPage({ params }: { params: Promise<{ id: strin
         file
       );
 
-      if (error) {
+      if (error || !data?.publicUrl) {
         throw new Error("Error uploading image");
       }
 
@@ -114,9 +114,9 @@ export default function EditSeriesPage({ params }: { params: Promise<{ id: strin
     mutationFn: async (data: FormData) => {
       setIsSubmitting(true);
       try {
-        let imageUrl = coverImage
+        const imageUrl = coverImage
           ? await handleImageUpload(coverImage)
-          : series.coverImage;
+          : series?.coverImage || '';
 
         const slug = slugify(data.title);
 

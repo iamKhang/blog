@@ -13,9 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Heart, Calendar } from "lucide-react";
 
 interface Props {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 interface Post {
@@ -60,7 +60,8 @@ async function getSeries(slug: string) {
 }
 
 export default async function SeriesPage({ params }: Props) {
-  const series = await getSeries(params.slug);
+  const { slug } = await params;
+  const series = await getSeries(slug);
 
   if (!series) {
     notFound();

@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-interface Props {
-  params: {
-    slug: string;
-  };
-}
-
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const post = await prisma.post.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         series: {
           select: {
@@ -59,11 +54,15 @@ export async function GET(
   }
 }
 
-export async function PATCH(request: Request, { params }: Props) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
+    const { slug } = await params;
     const body = await request.json();
     const post = await prisma.post.findUnique({
-      where: { slug: params.slug }
+      where: { slug }
     });
 
     if (!post) {

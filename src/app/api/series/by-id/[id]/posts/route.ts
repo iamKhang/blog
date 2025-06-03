@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Schema validation for request body
@@ -21,9 +21,10 @@ const SeriesPostsUpdateSchema = z.object({
 // GET /api/series/by-id/[id]/posts - Get all posts in a series
 export async function GET(request: Request, { params }: Props) {
   try {
+    const { id } = await params;
     const series = await prisma.series.findUnique({
       where: {
-        id: params.id,
+        id,
       },
       include: {
         posts: {
@@ -62,12 +63,13 @@ export async function GET(request: Request, { params }: Props) {
 // PATCH /api/series/by-id/[id]/posts - Update posts in a series (reorder or add/remove)
 export async function PATCH(request: Request, { params }: Props) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const validatedData = SeriesPostsUpdateSchema.parse(body);
 
     // Check if series exists
     const existingSeries = await prisma.series.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingSeries) {
@@ -80,7 +82,7 @@ export async function PATCH(request: Request, { params }: Props) {
     // Get current posts in the series
     const currentPosts = await prisma.post.findMany({
       where: {
-        seriesId: params.id,
+        seriesId: id,
       },
       select: {
         id: true,
@@ -117,7 +119,7 @@ export async function PATCH(request: Request, { params }: Props) {
           id: post.id,
         },
         data: {
-          seriesId: params.id,
+          seriesId: id,
           orderInSeries: post.orderInSeries,
         },
       });
@@ -126,7 +128,7 @@ export async function PATCH(request: Request, { params }: Props) {
     // Get updated series with posts
     const updatedSeries = await prisma.series.findUnique({
       where: {
-        id: params.id,
+        id,
       },
       include: {
         posts: {

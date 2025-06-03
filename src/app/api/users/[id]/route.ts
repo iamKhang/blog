@@ -3,11 +3,11 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Lấy user ID từ params
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Kiểm tra xem có user ID không
     if (!userId) {
@@ -56,10 +56,10 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const { id: userId } = await params;
     const body = await request.json();
     const { name, bio, dob, avatar } = body;
 

@@ -2,16 +2,17 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 interface Props {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function GET(request: Request, { params }: Props) {
   try {
+    const { slug } = await params;
     const series = await prisma.series.findUnique({
       where: {
-        slug: params.slug,
+        slug,
         isActive: true,
       },
       include: {
