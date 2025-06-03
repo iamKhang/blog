@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 interface Props {
   params: {
@@ -84,11 +84,9 @@ export async function PATCH(request: Request, { params }: Props) {
         coverImage: body.coverImage,
         isPinned: body.isPinned,
         isHidden: body.isHidden,
-        categoryIds: body.categoryIds || [],
         tags: body.tags || [],
       },
       include: {
-        categories: true,
         series: true,
       },
     });

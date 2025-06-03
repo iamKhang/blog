@@ -79,8 +79,13 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const { data: post, isLoading: isLoadingPost } = useQuery({
     queryKey: ["post", postId],
     queryFn: async () => {
+      if (!postId) throw new Error("Post ID is required");
+      console.log("Fetching post with ID:", postId); // Debug log
       const response = await fetch(`/api/posts/by-id/${postId}`);
-      if (!response.ok) throw new Error("Failed to fetch post");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to fetch post");
+      }
       return response.json();
     },
   });
@@ -156,6 +161,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     mutationFn: async (data: FormData) => {
       setIsSubmitting(true);
       try {
+        if (!postId) throw new Error("Post ID is required");
+        console.log("Updating post with ID:", postId); // Debug log
+        
         let imageUrl = coverImage
           ? await handleImageUpload(coverImage)
           : post.coverImage;
@@ -418,20 +426,28 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           </CardContent>
 
           <CardFooter>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                "Update Post"
-              )}
-            </Button>
+            <div className="flex justify-between w-full">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/admin/posts")}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Post"
+                )}
+              </Button>
+            </div>
           </CardFooter>
         </form>
       </Card>

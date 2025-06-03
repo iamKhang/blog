@@ -31,6 +31,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [viewCounted, setViewCounted] = useState(false)
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -74,6 +75,29 @@ export default function ProjectDetailPage() {
 
     fetchProject();
   }, [params.slug]);
+
+  // Tăng lượt xem chỉ một lần khi component mount
+  useEffect(() => {
+    const incrementView = async () => {
+      if (!params.slug || viewCounted) return;
+
+      try {
+        const response = await fetch(`/api/projects/${params.slug}/view`, {
+          method: 'POST',
+        });
+
+        if (response.ok) {
+          setViewCounted(true);
+          // Cập nhật lượt xem trong state
+          setProject(prev => prev ? { ...prev, views: prev.views + 1 } : null);
+        }
+      } catch (error) {
+        console.error('Error incrementing view:', error);
+      }
+    };
+
+    incrementView();
+  }, [params.slug, viewCounted]);
 
   if (loading) {
     return (

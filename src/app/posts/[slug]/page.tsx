@@ -1,11 +1,14 @@
-import { notFound } from "next/navigation";
+'use client'
+
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, Eye, Calendar, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ThumbsUp, Eye, Calendar, BookOpen, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { PostContent } from "@/components/PostContent";
+import { useParams } from "next/navigation";
 
 interface SeriesPost {
   id: string;
@@ -39,38 +42,91 @@ interface Post {
   updatedAt: string;
 }
 
-interface Props {
-  params: {
-    slug: string;
-  };
-}
+export default function PostPage() {
+  const params = useParams();
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const viewCountedRef = useRef(false);
 
-async function getPost(slug: string) {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${slug}`,
-      {
-        next: { revalidate: 60 },
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!params.slug) {
+        setError('Invalid post URL');
+        setLoading(false);
+        return;
       }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(`/api/posts/${params.slug}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load post');
+        }
+
+        setPost(data);
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load post');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [params.slug]);
+
+  // Tăng lượt xem chỉ một lần khi component mount
+  useEffect(() => {
+    const incrementView = async () => {
+      if (!params.slug || viewCountedRef.current) return;
+
+      try {
+        const response = await fetch(`/api/posts/${params.slug}/view`, {
+          method: 'POST',
+        });
+
+        if (response.ok) {
+          viewCountedRef.current = true;
+          // Cập nhật lượt xem trong state
+          setPost(prev => prev ? { ...prev, views: prev.views + 1 } : null);
+        }
+      } catch (error) {
+        console.error('Error incrementing view:', error);
+      }
+    };
+
+    incrementView();
+  }, [params.slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto flex justify-center items-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
     );
-
-    if (!response.ok) {
-      if (response.status === 404) return null;
-      throw new Error("Failed to fetch post");
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error("[GET_POST]", error);
-    throw new Error("Failed to fetch post");
   }
-}
 
-export default async function PostPage({ params }: Props) {
-  const post = await getPost(params.slug);
-
-  if (!post) {
-    notFound();
+  if (error || !post) {
+    return (
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+            <p className="text-gray-600">{error || 'Post not found'}</p>
+            <p className="text-sm text-gray-500 mt-2">
+              The post you're looking for might not exist or has been removed.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -262,33 +318,5 @@ export default async function PostPage({ params }: Props) {
       </div>
     </article>
   );
-}
-
-export async function generateMetadata({ params }: Props) {
-  if (!params?.slug) {
-    return {
-      title: "Post Not Found",
-      description: "The post you are looking for does not exist.",
-    };
-  }
-
-  const post = await getPost(params.slug);
-
-  if (!post) {
-    return {
-      title: "Post Not Found",
-      description: "The post you are looking for does not exist.",
-    };
-  }
-
-  return {
-    title: post.title,
-    description: post.excerpt,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      images: post.coverImage ? [post.coverImage] : [],
-    },
-  };
 }
 

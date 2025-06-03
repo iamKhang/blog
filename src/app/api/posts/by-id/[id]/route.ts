@@ -30,8 +30,19 @@ export async function GET(request: Request, { params }: Props) {
       throw new Error("Prisma client is not initialized");
     }
 
+    const { id } = await params;
+    console.log("GET request params:", { id }); // Debug log
+
+    // Validate ID
+    if (!id) {
+      return NextResponse.json(
+        { error: "Post ID is required" },
+        { status: 400 }
+      );
+    }
+
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         series: true,
       },
@@ -46,7 +57,7 @@ export async function GET(request: Request, { params }: Props) {
 
     // Increment view count
     await prisma.post.update({
-      where: { id: params.id },
+      where: { id },
       data: { views: { increment: 1 } },
     });
 
@@ -66,6 +77,17 @@ export async function PATCH(request: Request, { params }: Props) {
       throw new Error("Prisma client is not initialized");
     }
 
+    const { id } = await params;
+    console.log("PATCH request params:", { id }); // Debug log
+
+    // Validate ID
+    if (!id) {
+      return NextResponse.json(
+        { error: "Post ID is required" },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     console.log('Request body:', body); // Log request body
 
@@ -75,7 +97,7 @@ export async function PATCH(request: Request, { params }: Props) {
 
       // Kiểm tra xem post có tồn tại không
       const existingPost = await prisma.post.findUnique({
-        where: { id: params.id },
+        where: { id },
       });
 
       if (!existingPost) {
@@ -90,7 +112,7 @@ export async function PATCH(request: Request, { params }: Props) {
         const postWithSlug = await prisma.post.findFirst({
           where: {
             slug: validatedData.slug,
-            id: { not: params.id },
+            id: { not: id },
           },
         });
 
@@ -102,10 +124,10 @@ export async function PATCH(request: Request, { params }: Props) {
         }
       }
 
+      console.log("Updating post with ID:", id); // Debug log
+
       const updatedPost = await prisma.post.update({
-        where: {
-          id: params.id,
-        },
+        where: { id },
         data: {
           title: validatedData.title,
           slug: validatedData.slug,
