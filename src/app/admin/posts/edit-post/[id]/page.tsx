@@ -229,7 +229,7 @@ export default function EditPostPage({ params }: Props) {
   }
 
   return (
-    <div className="p-6">
+    <div className="w-full">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Edit Post</CardTitle>

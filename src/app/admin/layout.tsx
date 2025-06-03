@@ -6,8 +6,6 @@ import { Menu, Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import QueryProvider from "@/providers/query-provider";
-import { AuthSyncProvider } from '@/providers/auth-sync-provider';
 import { useState, useEffect } from "react";
 
 // Tạo layout cho admin
@@ -33,7 +31,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 w-full overflow-hidden">
+    <div className="flex min-h-screen bg-gray-100 w-full">
       {/* Desktop Sidebar - Fixed to left edge */}
       <div className="hidden md:block h-screen sticky top-0 left-0 flex-shrink-0">
         <Sidebar />
@@ -48,9 +46,9 @@ export default function AdminLayout({
         </Sheet>
       </div>
 
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Top Navigation Bar */}
-        <header className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
+        <header className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -78,13 +76,9 @@ export default function AdminLayout({
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
-            <QueryProvider>
-              <AuthSyncProvider>
-                {children}
-              </AuthSyncProvider>
-            </QueryProvider>
+            {children}
           </div>
         </main>
       </div>

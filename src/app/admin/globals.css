@@ -22,6 +22,12 @@ body > header,
 body > footer {
   display: none !important;
 }
+
+/* Ensure single scrollbar for admin pages */
+body > main {
+  min-height: auto !important;
+  overflow: visible !important;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;

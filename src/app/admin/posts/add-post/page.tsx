@@ -169,13 +169,13 @@ export default function AddPostPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      <Card className="flex-1 flex flex-col">
+    <div className="w-full">
+      <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Create New Post</CardTitle>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
-          <CardContent className="space-y-6 flex-1 flex flex-col">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent className="space-y-6">
             {/* Title */}
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
