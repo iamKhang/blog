@@ -92,7 +92,7 @@ export default function ManageSeriesPostsPage({ params }: { params: Promise<{ id
   const { data: allPosts, isLoading: isLoadingPosts } = useQuery({
     queryKey: ["posts", "all"],
     queryFn: async () => {
-      const response = await fetch(`/api/posts/get-all?limit=100`);
+      const response = await fetch(`/api/posts?limit=100`);
       if (!response.ok) throw new Error("Failed to fetch posts");
       return response.json();
     },

@@ -23,7 +23,7 @@ interface BlogPost {
 }
 
 async function fetchPosts() {
-  const response = await fetch('/api/posts/get-all?limit=3&published=true')
+  const response = await fetch('/api/posts?limit=3&published=true')
   if (!response.ok) {
     throw new Error('Failed to fetch posts')
   }

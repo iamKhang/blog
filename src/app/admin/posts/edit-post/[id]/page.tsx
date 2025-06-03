@@ -33,9 +33,9 @@ import {
 } from "@/components/ui/select";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 const formSchema = z.object({
@@ -44,7 +44,7 @@ const formSchema = z.object({
   content: z.string().min(1, "Content is required"),
   coverImage: z.string().optional(),
   isPinned: z.boolean().default(false),
-  isHidden: z.boolean().default(false),
+  published: z.boolean().default(false),
   tags: z.string().optional(),
   seriesId: z.string().nullable(),
   orderInSeries: z.number().int().nullable(),
@@ -52,7 +52,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditPostPage({ params }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,7 +107,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       setValue("excerpt", post.excerpt);
       setValue("content", post.content);
       setValue("isPinned", post.isPinned);
-      setValue("isHidden", post.isHidden);
+      setValue("published", post.published);
       setValue("tags", Array.isArray(post.tags) ? post.tags.join(", ") : "");
       setValue("seriesId", post.seriesId);
       setValue("orderInSeries", post.orderInSeries);
@@ -161,6 +161,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     mutationFn: async (data: FormData) => {
       setIsSubmitting(true);
       try {
+        const resolvedParams = await params;
+        const postId = resolvedParams.id;
+        
         if (!postId) throw new Error("Post ID is required");
         console.log("Updating post with ID:", postId); // Debug log
         
@@ -170,15 +173,20 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
         const slug = slugify(data.title);
 
-        const response = await fetch(`/api/posts/by-id/${postId}`, {
+        const requestData = {
+          id: postId,
+          ...data,
+          slug,
+          coverImage: imageUrl,
+        };
+        // Log without content
+        const { content, ...logData } = requestData;
+        console.log("Sending data to API:", logData); // Debug log
+
+        const response = await fetch(`/api/posts`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...data,
-            slug,
-            coverImage: imageUrl,
-            published: !data.isHidden,
-          }),
+          body: JSON.stringify(requestData),
         });
 
         if (!response.ok) {
@@ -410,9 +418,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="isHidden">Hidden</Label>
+                <Label htmlFor="published">Published</Label>
                 <Controller
-                  name="isHidden"
+                  name="published"
                   control={control}
                   render={({ field }) => (
                     <Switch

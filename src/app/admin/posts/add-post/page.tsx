@@ -38,7 +38,7 @@ const formSchema = z.object({
   content: z.string().min(1, "Content is required"),
   coverImage: z.any().optional(),
   isPinned: z.boolean().default(false),
-  isHidden: z.boolean().default(false),
+  published: z.boolean().default(false),
   tags: z.string().optional(),
   seriesId: z.string().optional(),
   orderInSeries: z.number().int().optional(),
@@ -71,7 +71,7 @@ export default function AddPostPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       isPinned: false,
-      isHidden: false,
+      published: false,
       tags: "",
     },
   });
@@ -142,7 +142,6 @@ export default function AddPostPage() {
           slug,
           coverImage: imageUrl,
           authorId: "68104903dcef03c0f4792468", // Replace with actual user ID
-          published: !data.isHidden,
         }),
       });
 
@@ -170,13 +169,13 @@ export default function AddPostPage() {
   };
 
   return (
-    <div className="p-6">
-      <Card>
+    <div className="flex-1 flex flex-col">
+      <Card className="flex-1 flex flex-col">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Create New Post</CardTitle>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+          <CardContent className="space-y-6 flex-1 flex flex-col">
             {/* Title */}
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
@@ -359,9 +358,9 @@ export default function AddPostPage() {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="isHidden">Hidden</Label>
+                <Label htmlFor="published">Published</Label>
                 <Controller
-                  name="isHidden"
+                  name="published"
                   control={control}
                   render={({ field }) => (
                     <Switch

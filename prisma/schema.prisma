@@ -42,7 +42,6 @@ model Post {
   coverImage  String?   @map("cover_image")
   published   Boolean   @default(false) @map("published")
   isPinned    Boolean   @default(false) @map("is_pinned")
-  isHidden    Boolean   @default(false) @map("is_hidden")
   views       Int       @default(0) @map("views")
   likes       Int       @default(0) @map("likes")
   authorId    String    @db.ObjectId @map("author_id")

@@ -212,7 +212,7 @@ export default function BlogPostsPage() {
       try {
         setLoading(true);
         const [postsResponse, seriesResponse] = await Promise.all([
-          fetch(`/api/posts/get-all?page=${currentPage}&limit=${postsPerPage}&published=true`),
+          fetch(`/api/posts?page=${currentPage}&limit=${postsPerPage}&published=true`),
           fetch('/api/series?limit=4')
         ]);
 

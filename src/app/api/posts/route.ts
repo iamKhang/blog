@@ -11,6 +11,22 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const tag = searchParams.get("tag") || "";
     const published = searchParams.get("published") || "true";
+    const isPinned = searchParams.get("isPinned") || "false";
+
+    // Validate input parameters
+    if (isNaN(page) || page < 1) {
+      return NextResponse.json(
+        { error: "Invalid page number" },
+        { status: 400 }
+      );
+    }
+
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      return NextResponse.json(
+        { error: "Invalid limit. Must be between 1 and 100" },
+        { status: 400 }
+      );
+    }
 
     const skip = (page - 1) * limit;
 
@@ -20,10 +36,12 @@ export async function GET(request: Request) {
           OR: [
             { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
             { content: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { excerpt: { contains: search, mode: Prisma.QueryMode.insensitive } },
           ],
         } : {},
         tag ? { tags: { has: tag } } : {},
-        { published: published === "true" },
+        // Only filter by published status if we're on the public blog page
+        published === "true" ? { published: true } : {},
       ],
     };
 
@@ -32,16 +50,31 @@ export async function GET(request: Request) {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          author: {
+        orderBy: [
+          { isPinned: "desc" },
+          { createdAt: "desc" }
+        ],
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          content: true,
+          excerpt: true,
+          coverImage: true,
+          published: true,
+          isPinned: true,
+          views: true,
+          likes: true,
+          tags: true,
+          createdAt: true,
+          updatedAt: true,
+          series: {
             select: {
               id: true,
-              name: true,
-              email: true,
+              title: true,
+              slug: true,
             },
           },
-          series: true,
         },
       }),
       prisma.post.count({ where }),
@@ -49,16 +82,20 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       posts,
-      pagination: {
+      metadata: {
         total,
-        pages: Math.ceil(total / limit),
-        current: page,
+        totalPages: Math.ceil(total / limit),
+        page,
+        limit,
       },
     });
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { 
+        error: "Failed to fetch posts",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
@@ -76,7 +113,6 @@ export async function POST(request: Request) {
       coverImage,
       published = false,
       isPinned = false,
-      isHidden = false,
       tags,
       seriesId,
       orderInSeries,
@@ -95,7 +131,6 @@ export async function POST(request: Request) {
         coverImage,
         published,
         isPinned,
-        isHidden,
         tags: tagsArray,
         seriesId: seriesId || null,
         orderInSeries: orderInSeries || null,
@@ -122,10 +157,61 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { id, ...data } = body;
 
+    if (!id) {
+      return NextResponse.json(
+        { error: "Post ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate ID format
+    if (id.length !== 24) {
+      return NextResponse.json(
+        { error: "Invalid post ID format" },
+        { status: 400 }
+      );
+    }
+
+    // Check if post exists
+    const existingPost = await prisma.post.findUnique({
+      where: { id },
+    });
+
+    if (!existingPost) {
+      return NextResponse.json(
+        { error: "Post not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check for slug uniqueness if slug is being updated
+    if (data.slug && data.slug !== existingPost.slug) {
+      const postWithSlug = await prisma.post.findFirst({
+        where: {
+          slug: data.slug,
+          id: { not: id },
+        },
+      });
+
+      if (postWithSlug) {
+        return NextResponse.json(
+          { error: "Slug already exists" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Convert tags string to array if needed
     const tagsArray = Array.isArray(data.tags) ? data.tags : (data.tags ? data.tags.split(',').map((tag: string) => tag.trim()) : []);
 
-    const post = await prisma.post.update({
+    console.log("Updating post with ID:", id); // Debug log
+    const { content, ...logData } = data;
+    console.log("Update data:", {
+      ...logData,
+      tags: tagsArray,
+    });
+
+    const updatedPost = await prisma.post.update({
       where: { id },
       data: {
         ...data,
@@ -134,18 +220,15 @@ export async function PATCH(request: Request) {
         orderInSeries: data.orderInSeries || null,
       },
       include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
         series: true,
       },
     });
 
-    return NextResponse.json(post);
+    // Log response without content
+    const { content: responseContent, ...responseData } = updatedPost;
+    console.log("Updated post:", responseData); // Debug log
+
+    return NextResponse.json(updatedPost);
   } catch (error) {
     console.error("Error updating post:", error);
     return NextResponse.json(

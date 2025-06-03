@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+interface Props {
+  params: {
+    slug: string;
+  };
+}
+
+export async function GET(request: Request, { params }: Props) {
   try {
-    const { slug } = await params;
+    const { slug } = params;
     const post = await prisma.post.findUnique({
       where: { slug },
       include: {
@@ -54,12 +57,9 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export async function PATCH(request: Request, { params }: Props) {
   try {
-    const { slug } = await params;
+    const { slug } = params;
     const body = await request.json();
     const post = await prisma.post.findUnique({
       where: { slug }
@@ -82,7 +82,7 @@ export async function PATCH(
         excerpt: body.excerpt,
         coverImage: body.coverImage,
         isPinned: body.isPinned,
-        isHidden: body.isHidden,
+        published: body.published,
         tags: body.tags || [],
       },
       include: {

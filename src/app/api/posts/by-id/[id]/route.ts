@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 interface Props {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
 // Schema validation cho request body
@@ -15,7 +15,7 @@ const PostUpdateSchema = z.object({
   excerpt: z.string().min(1, "Excerpt is required"),
   coverImage: z.string().optional(),
   isPinned: z.boolean().default(false),
-  isHidden: z.boolean().default(false),
+  published: z.boolean().default(false),
   tags: z.string().transform(val => 
     val.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
   ),
@@ -30,13 +30,13 @@ export async function GET(request: Request, { params }: Props) {
       throw new Error("Prisma client is not initialized");
     }
 
-    const { id } = await params;
+    const { id } = params;
     console.log("GET request params:", { id }); // Debug log
 
     // Validate ID
-    if (!id) {
+    if (!id || id.length !== 24) {
       return NextResponse.json(
-        { error: "Post ID is required" },
+        { error: "Invalid post ID" },
         { status: 400 }
       );
     }
@@ -77,13 +77,13 @@ export async function PATCH(request: Request, { params }: Props) {
       throw new Error("Prisma client is not initialized");
     }
 
-    const { id } = await params;
+    const { id } = params;
     console.log("PATCH request params:", { id }); // Debug log
 
     // Validate ID
-    if (!id) {
+    if (!id || id.length !== 24) {
       return NextResponse.json(
-        { error: "Post ID is required" },
+        { error: "Invalid post ID" },
         { status: 400 }
       );
     }
@@ -125,6 +125,12 @@ export async function PATCH(request: Request, { params }: Props) {
       }
 
       console.log("Updating post with ID:", id); // Debug log
+      // Log without content
+      const { content, ...logData } = validatedData;
+      console.log("Update data:", {
+        ...logData,
+        tags: validatedData.tags || [],
+      });
 
       const updatedPost = await prisma.post.update({
         where: { id },
@@ -135,7 +141,7 @@ export async function PATCH(request: Request, { params }: Props) {
           excerpt: validatedData.excerpt,
           coverImage: validatedData.coverImage,
           isPinned: validatedData.isPinned,
-          isHidden: validatedData.isHidden,
+          published: validatedData.published,
           tags: validatedData.tags || [],
           seriesId: validatedData.seriesId,
           orderInSeries: validatedData.orderInSeries,
@@ -145,6 +151,9 @@ export async function PATCH(request: Request, { params }: Props) {
         },
       });
 
+      // Log response without content
+      const { content: responseContent, ...responseData } = updatedPost;
+      console.log("Updated post:", responseData); // Debug log
       return NextResponse.json(updatedPost);
     } catch (validationError) {
       console.error('Validation error:', validationError);
