@@ -130,7 +130,24 @@ code[class*="language-"] {
 
 pre[class*="language-"] {
   @apply p-4 my-6 overflow-auto rounded-lg;
-  background: #282a36;
+  background: #282a36 !important;
+  border: 1px solid #44475a;
+}
+
+/* Ensure code blocks inside pre have proper styling */
+pre[class*="language-"] code[class*="language-"] {
+  background: transparent !important;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Style for code blocks without specific language */
+pre.language-none {
+  background: #282a36 !important;
+  color: #f8f8f2;
+  border: 1px solid #44475a;
 }
 
 /* Dracula Theme Colors */
