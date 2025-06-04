@@ -1,11 +1,9 @@
-// src/app/layout.tsx
-import { Header } from "@/components/header";
+// Root Layout - Required by Next.js
 import "./globals.css";
 import { ReactNode } from "react";
-import { Footer } from "@/components/footer";
 import QueryProvider from "@/providers/query-provider";
 import { AuthSyncProvider } from '@/providers/auth-sync-provider';
-import { metadata } from './metadata';
+import { metadata } from './(user)/metadata';
 
 export { metadata };
 
@@ -15,13 +13,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <QueryProvider>
           <AuthSyncProvider>
-            <Header />
-            <main className="min-h-screen bg-gray-100">
-              <div className="container mx-auto px-4">
-                {children}
-              </div>
-            </main>
-            <Footer />
+            {children}
           </AuthSyncProvider>
         </QueryProvider>
       </body>

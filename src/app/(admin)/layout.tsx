@@ -1,6 +1,4 @@
 "use client";
-
-import "./globals.css";
 import { Sidebar } from "@/components/admin/sidebar";
 import { Menu, Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
