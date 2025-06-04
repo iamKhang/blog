@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: Props) {
       include: {
         posts: {
           where: {
-            isHidden: false,
+            published: true,
           },
           orderBy: {
             orderInSeries: "asc",
@@ -29,8 +29,6 @@ export async function GET(request: Request, { params }: Props) {
             slug: true,
             excerpt: true,
             coverImage: true,
-            views: true,
-            likes: true,
             createdAt: true,
             orderInSeries: true,
           },
@@ -39,7 +37,7 @@ export async function GET(request: Request, { params }: Props) {
           select: {
             posts: {
               where: {
-                isHidden: false,
+                published: true,
               },
             },
           },

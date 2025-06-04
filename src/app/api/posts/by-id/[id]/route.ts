@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Schema validation cho request body
@@ -30,7 +30,7 @@ export async function GET(request: Request, { params }: Props) {
       throw new Error("Prisma client is not initialized");
     }
 
-    const { id } = params;
+    const { id } = await params;
     console.log("GET request params:", { id }); // Debug log
 
     // Validate ID
@@ -55,13 +55,20 @@ export async function GET(request: Request, { params }: Props) {
       );
     }
 
-    // Increment view count
-    await prisma.post.update({
-      where: { id },
-      data: { views: { increment: 1 } },
-    });
+    // Transform the post data to include counts instead of arrays
+    const viewedBy = post.viewedBy || [];
+    const likedBy = post.likedBy || [];
 
-    return NextResponse.json(post);
+    const transformedPost = {
+      ...post,
+      views: viewedBy.length,
+      likes: likedBy.length,
+      // Remove the arrays from the response for security
+      viewedBy: undefined,
+      likedBy: undefined,
+    };
+
+    return NextResponse.json(transformedPost);
   } catch (error) {
     console.error("Error fetching post:", error);
     return NextResponse.json(
@@ -77,7 +84,7 @@ export async function PATCH(request: Request, { params }: Props) {
       throw new Error("Prisma client is not initialized");
     }
 
-    const { id } = params;
+    const { id } = await params;
     console.log("PATCH request params:", { id }); // Debug log
 
     // Validate ID

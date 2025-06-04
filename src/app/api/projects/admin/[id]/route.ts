@@ -22,7 +22,20 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(project);
+    // Transform the project data to include counts instead of arrays
+    const viewedBy = project.viewedBy || [];
+    const likedBy = project.likedBy || [];
+
+    const transformedProject = {
+      ...project,
+      views: viewedBy.length,
+      likes: likedBy.length,
+      // Remove the arrays from the response for security
+      viewedBy: undefined,
+      likedBy: undefined,
+    };
+
+    return NextResponse.json(transformedProject);
   } catch (error) {
     console.error("Error in project API:", error);
     return NextResponse.json(
