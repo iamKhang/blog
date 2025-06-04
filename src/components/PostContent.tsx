@@ -14,42 +14,74 @@ export function PostContent({ content }: PostContentProps) {
       if (!contentRef.current || typeof window === 'undefined') return;
 
       try {
+
         // Dynamic import Prism
         const { default: Prism } = await import('prismjs');
 
+        // Import CSS theme nếu chưa có
+        if (!document.querySelector('link[href*="prism"]')) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css';
+          document.head.appendChild(link);
+        }
+
         // Import các ngôn ngữ cần thiết
         await Promise.all([
-          import('prismjs/components/prism-java'),
-          import('prismjs/components/prism-javascript'),
-          import('prismjs/components/prism-typescript'),
-          import('prismjs/components/prism-python'),
-          import('prismjs/components/prism-jsx'),
-          import('prismjs/components/prism-css'),
-          import('prismjs/components/prism-json'),
-          import('prismjs/components/prism-bash'),
-          import('prismjs/components/prism-sql'),
+          import('prismjs/components/prism-java' as any),
+          import('prismjs/components/prism-javascript' as any),
+          import('prismjs/components/prism-typescript' as any),
+          import('prismjs/components/prism-python' as any),
+          import('prismjs/components/prism-jsx' as any),
+          import('prismjs/components/prism-css' as any),
+          import('prismjs/components/prism-json' as any),
+          import('prismjs/components/prism-bash' as any),
+          import('prismjs/components/prism-sql' as any),
         ]);
 
         // Tìm tất cả code blocks
         const codeBlocks = contentRef.current.querySelectorAll('pre[class*="language-"]');
 
         if (codeBlocks.length > 0) {
-          codeBlocks.forEach((block) => {
+          codeBlocks.forEach((block, index) => {
             const codeElement = block.querySelector('code');
             if (codeElement) {
-              // Copy class từ pre sang code nếu cần
-              if (!codeElement.className && block.className) {
-                codeElement.className = block.className;
-              }
+              // Luôn copy class từ pre sang code
+              codeElement.className = block.className;
               Prism.highlightElement(codeElement);
+            } else {
+              // Nếu không có code element, highlight trực tiếp pre
+              Prism.highlightElement(block);
             }
           });
         } else {
-          // Fallback: highlight tất cả
-          Prism.highlightAllUnder(contentRef.current);
+          // Tìm tất cả pre elements
+          const allPreElements = contentRef.current.querySelectorAll('pre');
+
+          if (allPreElements.length > 0) {
+            allPreElements.forEach((pre, index) => {
+              const codeElement = pre.querySelector('code');
+              if (codeElement) {
+                // Nếu pre không có class language, thêm class mặc định
+                if (!pre.className.includes('language-')) {
+                  pre.className += ' language-none';
+                }
+                codeElement.className = pre.className;
+                Prism.highlightElement(codeElement);
+              } else {
+                if (!pre.className.includes('language-')) {
+                  pre.className += ' language-none';
+                }
+                Prism.highlightElement(pre);
+              }
+            });
+          } else {
+            // Fallback cuối cùng
+            Prism.highlightAllUnder(contentRef.current);
+          }
         }
       } catch (error) {
-        console.error('Error highlighting code:', error);
+        console.error('❌ Error highlighting code:', error);
       }
     };
 
