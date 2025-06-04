@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Eye, ThumbsUp } from "lucide-react"
+import { ArrowRight, Eye, Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Project } from "@/types/project"
 
@@ -76,7 +76,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {project.views || 0}
           </span>
           <span className="flex items-center">
-            <ThumbsUp className="w-4 h-4 mr-1" />
+            <Heart className={`w-4 h-4 mr-1 ${project.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
             {project.likes || 0}
           </span>
         </div>

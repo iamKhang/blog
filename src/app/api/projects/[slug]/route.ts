@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
+
+interface JWTPayload {
+  id: string;
+  email: string;
+  role: string;
+}
 
 export async function GET(
   request: Request,
@@ -8,6 +16,21 @@ export async function GET(
   try {
     const { slug } = await params;
     console.log('Fetching project with slug:', slug);
+
+    // Lấy thông tin user từ cookie (nếu có)
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+
+    let userId: string | null = null;
+
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode<JWTPayload>(accessToken);
+        userId = decoded.id;
+      } catch (error) {
+        console.log('Invalid token');
+      }
+    }
 
     const project = await prisma.project.findUnique({
       where: { 
@@ -26,15 +49,21 @@ export async function GET(
 
     console.log('Found project:', project.id);
 
-    // Tăng lượt xem
-    const updatedProject = await prisma.project.update({
-      where: { id: project.id },
-      data: { views: { increment: 1 } },
-    });
+    // Transform the project data to include counts and user interaction status
+    const viewedBy = project.viewedBy || [];
+    const likedBy = project.likedBy || [];
 
-    console.log('Updated views for project:', updatedProject.id);
+    const transformedProject = {
+      ...project,
+      views: viewedBy.length,
+      likes: likedBy.length,
+      isLikedByUser: userId ? likedBy.includes(userId) : false,
+      // Remove the arrays from the response for security
+      viewedBy: undefined,
+      likedBy: undefined,
+    };
 
-    return NextResponse.json(updatedProject);
+    return NextResponse.json(transformedProject);
   } catch (error) {
     console.error("Error in project API:", error);
     return NextResponse.json(

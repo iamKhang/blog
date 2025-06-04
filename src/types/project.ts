@@ -18,6 +18,7 @@ export interface Project {
   docsUrl?: string
   views: number
   likes: number
+  isLikedByUser: boolean
   isPinned: boolean
   isHidden: boolean
   createdAt: string

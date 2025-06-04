@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { slugify } from "@/lib/utils";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
+
+interface JWTPayload {
+  id: string;
+  email: string;
+  role: string;
+}
 
 // Schema cho việc tạo project
 const ProjectCreateSchema = z.object({
@@ -22,6 +30,21 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '9');
+
+    // Lấy thông tin user từ cookie (nếu có)
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+
+    let userId: string | null = null;
+
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode<JWTPayload>(accessToken);
+        userId = decoded.id;
+      } catch (error) {
+        console.log('Invalid token');
+      }
+    }
     const skip = (page - 1) * limit;
 
     // Đếm tổng số projects
@@ -35,25 +58,50 @@ export async function GET(request: Request) {
       ],
       skip,
       take: limit,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        description: true,
+        thumbnail: true,
+        techStack: true,
+        status: true,
+        viewedBy: true,
+        likedBy: true,
+        isPinned: true,
+        isHidden: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    // Đảm bảo dữ liệu trả về đúng định dạng
-    const formattedProjects = projects.map(project => ({
-      id: project.id,
-      title: project.title,
-      slug: project.slug,
-      excerpt: project.excerpt,
-      description: project.description,
-      thumbnail: project.thumbnail,
-      techStack: project.techStack || [],
-      status: project.status,
-      views: project.views || 0,
-      likes: project.likes || 0,
-      isPinned: project.isPinned || false,
-      isHidden: project.isHidden || false,
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString()
-    }));
+    // Transform projects to include counts and user interaction status
+    const formattedProjects = projects.map(project => {
+      const viewedBy = project.viewedBy || [];
+      const likedBy = project.likedBy || [];
+
+      return {
+        id: project.id,
+        title: project.title,
+        slug: project.slug,
+        excerpt: project.excerpt,
+        description: project.description,
+        thumbnail: project.thumbnail,
+        techStack: project.techStack || [],
+        status: project.status,
+        views: viewedBy.length,
+        likes: likedBy.length,
+        isLikedByUser: userId ? likedBy.includes(userId) : false,
+        isPinned: project.isPinned || false,
+        isHidden: project.isHidden || false,
+        createdAt: project.createdAt.toISOString(),
+        updatedAt: project.updatedAt.toISOString(),
+        // Remove arrays from response for security
+        viewedBy: undefined,
+        likedBy: undefined,
+      };
+    });
 
     return NextResponse.json({
       projects: formattedProjects,
@@ -110,8 +158,8 @@ export async function POST(request: Request) {
         isPinned: validatedData.isPinned,
         isHidden: validatedData.isHidden,
         techStack: validatedData.techStack,
-        views: 0,
-        likes: 0,
+        viewedBy: [],
+        likedBy: [],
       },
     });
 

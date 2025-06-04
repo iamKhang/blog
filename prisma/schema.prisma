@@ -65,8 +65,8 @@ model Project {
   thumbnail     String
   techStack     String[]  @map("tech_stack")
   status        Boolean   @default(false) @map("status")
-  views         Int       @default(0) @map("views")
-  likes         Int       @default(0) @map("likes")
+  viewedBy      String[]  @default([]) @map("viewed_by")
+  likedBy       String[]  @default([]) @map("liked_by")
   isPinned      Boolean   @default(false) @map("is_pinned")
   isHidden      Boolean   @default(false) @map("is_hidden")
   createdAt     DateTime  @default(now()) @map("created_at")

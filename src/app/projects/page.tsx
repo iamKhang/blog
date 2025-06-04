@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { ArrowRight, Github, ExternalLink, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowRight, Github, ExternalLink, Loader2, ChevronLeft, ChevronRight, Eye, Heart, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import Image from "next/image"
@@ -28,6 +28,7 @@ interface Project {
   status: boolean;
   views: number;
   likes: number;
+  isLikedByUser: boolean;
   isPinned: boolean;
   isHidden: boolean;
   createdAt: string;
@@ -46,6 +47,18 @@ interface ProjectsResponse {
 
 const ProjectCard = ({ project }: { project: Project }) => {
   const router = useRouter();
+  
+  const timeAgo = (date: string) => {
+    const now = new Date();
+    const postDate = new Date(date);
+    const diffInSeconds = Math.floor((now.getTime() - postDate.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return postDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
   
   return (
     <Card className="group flex w-full overflow-hidden hover:shadow-lg transition-all duration-300 border cursor-pointer"
@@ -99,10 +112,22 @@ const ProjectCard = ({ project }: { project: Project }) => {
         </CardHeader>
         
         <CardFooter className="flex justify-between items-center p-4 border-t bg-gray-50/50">
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <span>👁 {project.views}</span>
-            <span>❤️ {project.likes}</span>
-            <span>📅 {new Date(project.createdAt).toLocaleDateString()}</span>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1 text-gray-500">
+              <Eye size={16} />
+              <span className="text-sm">{project.views}</span>
+            </div>
+            <div className="flex items-center space-x-1 text-gray-500">
+              <Heart
+                size={16}
+                className={project.isLikedByUser ? 'fill-red-500 text-red-500' : ''}
+              />
+              <span className="text-sm">{project.likes}</span>
+            </div>
+            <div className="flex items-center text-xs text-gray-500">
+              <Calendar size={14} className="mr-1" />
+              {timeAgo(project.createdAt)}
+            </div>
           </div>
           <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
             Xem chi tiết <ArrowRight className="ml-1 h-3 w-3" />

@@ -5,9 +5,10 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2, Github, ExternalLink, ThumbsUp, Eye, Calendar } from 'lucide-react'
+import { Loader2, Github, ExternalLink, Heart, Eye, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { PostContent } from '@/components/PostContent'
+import { useAuthStore } from '@/store/useAuthStore'
 
 interface Project {
   id: string
@@ -20,6 +21,7 @@ interface Project {
   status: boolean
   views: number
   likes: number
+  isLikedByUser: boolean
   isPinned: boolean
   isHidden: boolean
   createdAt: string
@@ -31,6 +33,8 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isLiking, setIsLiking] = useState(false)
+  const { isAuthenticated } = useAuthStore()
   const [viewCounted, setViewCounted] = useState(false)
 
   useEffect(() => {
@@ -99,6 +103,33 @@ export default function ProjectDetailPage() {
     incrementView();
   }, [params.slug, viewCounted]);
 
+  // Handle like/unlike
+  const handleLike = async () => {
+    if (!isAuthenticated || !project || isLiking) {
+      return;
+    }
+
+    setIsLiking(true);
+    try {
+      const response = await fetch(`/api/projects/${params.slug}/like`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProject(prev => prev ? {
+          ...prev,
+          likes: data.likesCount,
+          isLikedByUser: data.isLiked
+        } : null);
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen p-8">
@@ -164,7 +195,7 @@ export default function ProjectDetailPage() {
                 {project.views} lượt xem
               </div>
               <div className="flex items-center gap-2">
-                <ThumbsUp className="w-4 h-4" />
+                <Heart className={`w-4 h-4 ${project.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
                 {project.likes} lượt thích
               </div>
             </div>
@@ -222,9 +253,15 @@ export default function ProjectDetailPage() {
             <Button
               variant="outline"
               size="lg"
-              className="flex items-center gap-2 min-w-[140px]"
+              className={`flex items-center gap-2 min-w-[140px] ${
+                project.isLikedByUser ? 'bg-red-50 border-red-200 text-red-600' : ''
+              }`}
+              onClick={handleLike}
+              disabled={!isAuthenticated || isLiking}
             >
-              <ThumbsUp className="w-5 h-5" />
+              <Heart className={`w-5 h-5 ${
+                project.isLikedByUser ? 'fill-red-500 text-red-500' : ''
+              }`} />
               <span>{project.likes} lượt thích</span>
             </Button>
           </div>
