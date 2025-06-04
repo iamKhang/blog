@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Clock, Eye, ThumbsUp } from 'lucide-react'
+import { ArrowRight, Clock, Eye, Heart } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +17,7 @@ interface BlogPost {
   readTime: number
   views: number
   likes: number
+  isLikedByUser: boolean
   tags: string[]
   coverImage: string
   slug: string
@@ -118,7 +119,7 @@ export function BlogSection() {
                       {post.views || 0}
                     </span>
                     <span className="flex items-center">
-                      <ThumbsUp className="w-4 h-4 mr-1" />
+                      <Heart className={`w-4 h-4 mr-1 ${post.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
                       {post.likes || 0}
                     </span>
                   </div>

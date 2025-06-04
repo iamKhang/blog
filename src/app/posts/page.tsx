@@ -30,6 +30,7 @@ interface Post {
   coverImage: string | null;
   views: number;
   likes: number;
+  isLikedByUser: boolean;
   isPinned: boolean;
   createdAt: string;
   slug: string;
@@ -131,7 +132,10 @@ const PostCard = ({ post }: { post: Post }) => {
               <span className="text-sm">{post.views}</span>
             </div>
             <div className="flex items-center space-x-1 text-gray-500">
-              <Heart size={16} />
+              <Heart
+                size={16}
+                className={post.isLikedByUser ? 'fill-red-500 text-red-500' : ''}
+              />
               <span className="text-sm">{post.likes}</span>
             </div>
           </div>

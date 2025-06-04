@@ -42,13 +42,13 @@ model Post {
   coverImage  String?   @map("cover_image")
   published   Boolean   @default(false) @map("published")
   isPinned    Boolean   @default(false) @map("is_pinned")
-  views       Int       @default(0) @map("views")
-  likes       Int       @default(0) @map("likes")
+  viewedBy    String[]  @default([]) @map("viewed_by")
+  likedBy     String[]  @default([]) @map("liked_by")
   authorId    String    @db.ObjectId @map("author_id")
   author      User      @relation(fields: [authorId], references: [id])
   tags        String[]
   series      Series?   @relation(fields: [seriesId], references: [id])
-  seriesId    String?   @db.ObjectId @map("series_id")        
+  seriesId    String?   @db.ObjectId @map("series_id")
   orderInSeries Int?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")

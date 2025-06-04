@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
+
+interface JWTPayload {
+  id: string;
+  email: string;
+  role: string;
+}
 
 // GET /api/posts - Get all posts with pagination and filters
 export async function GET(request: Request) {
@@ -11,7 +19,21 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const tag = searchParams.get("tag") || "";
     const published = searchParams.get("published") || "true";
-    const isPinned = searchParams.get("isPinned") || "false";
+
+    // Lấy thông tin user từ cookie (nếu có)
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+
+    let userId: string | null = null;
+
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode<JWTPayload>(accessToken);
+        userId = decoded.id;
+      } catch (error) {
+        console.log('Invalid token');
+      }
+    }
 
     // Validate input parameters
     if (isNaN(page) || page < 1) {
@@ -63,8 +85,8 @@ export async function GET(request: Request) {
           coverImage: true,
           published: true,
           isPinned: true,
-          views: true,
-          likes: true,
+          viewedBy: true,
+          likedBy: true,
           tags: true,
           createdAt: true,
           updatedAt: true,
@@ -80,8 +102,24 @@ export async function GET(request: Request) {
       prisma.post.count({ where }),
     ]);
 
+    // Transform posts to include counts and user interaction status
+    const transformedPosts = posts.map(post => {
+      const viewedBy = post.viewedBy || [];
+      const likedBy = post.likedBy || [];
+
+      return {
+        ...post,
+        views: viewedBy.length,
+        likes: likedBy.length,
+        isLikedByUser: userId ? likedBy.includes(userId) : false,
+        // Remove arrays from response for security
+        viewedBy: undefined,
+        likedBy: undefined,
+      };
+    });
+
     return NextResponse.json({
-      posts,
+      posts: transformedPosts,
       metadata: {
         total,
         totalPages: Math.ceil(total / limit),

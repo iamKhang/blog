@@ -6,9 +6,10 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, Eye, Calendar, BookOpen, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Eye, Calendar, BookOpen, ChevronLeft, ChevronRight, Loader2, Heart } from 'lucide-react';
 import { PostContent } from "@/components/PostContent";
 import { useParams } from "next/navigation";
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface SeriesPost {
   id: string;
@@ -36,6 +37,7 @@ interface Post {
   isHidden: boolean;
   views: number;
   likes: number;
+  isLikedByUser: boolean;
   tags: string[];
   series: Series | null;
   createdAt: string;
@@ -47,7 +49,9 @@ export default function PostPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLiking, setIsLiking] = useState(false);
   const viewCountedRef = useRef(false);
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -102,6 +106,33 @@ export default function PostPage() {
 
     incrementView();
   }, [params.slug]);
+
+  // Hàm xử lý like/unlike
+  const handleLike = async () => {
+    if (!isAuthenticated || !post || isLiking) {
+      return;
+    }
+
+    setIsLiking(true);
+    try {
+      const response = await fetch(`/api/posts/${params.slug}/like`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost(prev => prev ? {
+          ...prev,
+          likes: data.likesCount,
+          isLikedByUser: data.isLiked
+        } : null);
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -172,7 +203,7 @@ export default function PostPage() {
                 {post.views} lượt xem
               </div>
               <div className="flex items-center gap-2">
-                <ThumbsUp className="w-4 h-4" />
+                <Heart className={`w-4 h-4 ${post.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
                 {post.likes} lượt thích
               </div>
             </div>
@@ -308,9 +339,15 @@ export default function PostPage() {
             <Button
               variant="outline"
               size="lg"
-              className="flex items-center gap-2 min-w-[140px]"
+              className={`flex items-center gap-2 min-w-[140px] ${
+                post.isLikedByUser ? 'bg-red-50 border-red-200 text-red-600' : ''
+              }`}
+              onClick={handleLike}
+              disabled={!isAuthenticated || isLiking}
             >
-              <ThumbsUp className="w-5 h-5" />
+              <Heart className={`w-5 h-5 ${
+                post.isLikedByUser ? 'fill-red-500 text-red-500' : ''
+              }`} />
               <span>{post.likes} lượt thích</span>
             </Button>
           </div>

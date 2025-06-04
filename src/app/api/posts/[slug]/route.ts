@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
 interface Props {
   params: {
@@ -7,9 +9,31 @@ interface Props {
   };
 }
 
+interface JWTPayload {
+  id: string;
+  email: string;
+  role: string;
+}
+
 export async function GET(request: Request, { params }: Props) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
+
+    // Lấy thông tin user từ cookie (nếu có)
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+
+    let userId: string | null = null;
+
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode<JWTPayload>(accessToken);
+        userId = decoded.id;
+      } catch (error) {
+        console.log('Invalid token');
+      }
+    }
+
     const post = await prisma.post.findUnique({
       where: { slug },
       include: {
@@ -41,13 +65,21 @@ export async function GET(request: Request, { params }: Props) {
       );
     }
 
-    // Increment view count
-    await prisma.post.update({
-      where: { id: post.id },
-      data: { views: { increment: 1 } },
-    });
+    // Transform the post data to include counts and user interaction status
+    const viewedBy = post.viewedBy || [];
+    const likedBy = post.likedBy || [];
 
-    return NextResponse.json(post);
+    const transformedPost = {
+      ...post,
+      views: viewedBy.length,
+      likes: likedBy.length,
+      isLikedByUser: userId ? likedBy.includes(userId) : false,
+      // Remove the arrays from the response for security
+      viewedBy: undefined,
+      likedBy: undefined,
+    };
+
+    return NextResponse.json(transformedPost);
   } catch (error) {
     console.error("[GET_POST]", error);
     return NextResponse.json(
@@ -59,7 +91,7 @@ export async function GET(request: Request, { params }: Props) {
 
 export async function PATCH(request: Request, { params }: Props) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     const body = await request.json();
     const post = await prisma.post.findUnique({
       where: { slug }

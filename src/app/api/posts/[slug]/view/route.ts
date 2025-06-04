@@ -1,0 +1,85 @@
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
+
+interface Props {
+  params: {
+    slug: string;
+  };
+}
+
+interface JWTPayload {
+  id: string;
+  email: string;
+  role: string;
+}
+
+export async function POST(request: Request, { params }: Props) {
+  try {
+    const { slug } = await params;
+
+    // Lấy thông tin user từ cookie (nếu có)
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+    
+    let userId: string | null = null;
+    
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode<JWTPayload>(accessToken);
+        userId = decoded.id;
+      } catch (error) {
+        console.log('Invalid token, treating as anonymous view');
+      }
+    }
+
+    // Tìm bài viết
+    const post = await prisma.post.findUnique({
+      where: { slug },
+      select: { id: true, viewedBy: true }
+    });
+
+    if (!post) {
+      return NextResponse.json(
+        { error: "Post not found" },
+        { status: 404 }
+      );
+    }
+
+    // Đảm bảo viewedBy là array hợp lệ
+    const currentViewedBy = post.viewedBy || [];
+
+    // Nếu có userId và chưa xem bài viết này
+    if (userId && !currentViewedBy.includes(userId)) {
+      await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          viewedBy: [...currentViewedBy, userId]
+        }
+      });
+    } else if (!userId) {
+      // Đối với anonymous users, chúng ta sẽ luôn tăng view
+      // Vì không thể track chính xác được duplicate views
+      // Có thể cải thiện sau bằng cách sử dụng IP + User Agent
+      const forwardedFor = request.headers.get('x-forwarded-for');
+      const ip = forwardedFor ? forwardedFor.split(',')[0] : 'unknown';
+      const anonymousId = `anon_${ip.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`;
+
+      await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          viewedBy: [...currentViewedBy, anonymousId]
+        }
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[POST_VIEW]", error);
+    return NextResponse.json(
+      { error: "Failed to update view count" },
+      { status: 500 }
+    );
+  }
+}
