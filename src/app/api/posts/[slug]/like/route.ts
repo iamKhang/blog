@@ -3,19 +3,16 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
 
-interface Props {
-  params: {
-    slug: string;
-  };
-}
-
 interface JWTPayload {
   id: string;
   email: string;
   role: string;
 }
 
-export async function POST(request: Request, { params }: Props) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
     const { slug } = await params;
     
@@ -41,23 +38,23 @@ export async function POST(request: Request, { params }: Props) {
       );
     }
 
-    // Tìm project
-    const project = await prisma.project.findUnique({
+    // Tìm bài viết
+    const post = await prisma.post.findUnique({
       where: { slug },
       select: { id: true, likedBy: true }
     });
 
-    if (!project) {
+    if (!post) {
       return NextResponse.json(
-        { error: "Project not found" },
+        { error: "Post not found" },
         { status: 404 }
       );
     }
 
     // Đảm bảo likedBy là array hợp lệ
-    const currentLikedBy = project.likedBy || [];
+    const currentLikedBy = post.likedBy || [];
     const isLiked = currentLikedBy.includes(userId);
-    
+
     // Toggle like status
     let newLikedBy: string[];
     if (isLiked) {
@@ -67,7 +64,7 @@ export async function POST(request: Request, { params }: Props) {
       // Add like
       newLikedBy = [...currentLikedBy, userId];
     }
-    
+
     // Đảm bảo không có undefined values
     newLikedBy = newLikedBy.filter(id => id !== undefined && id !== null && id !== '');
 
@@ -79,8 +76,8 @@ export async function POST(request: Request, { params }: Props) {
       );
     }
 
-    const updatedProject = await prisma.project.update({
-      where: { id: project.id },
+    const updatedPost = await prisma.post.update({
+      where: { id: post.id },
       data: {
         likedBy: newLikedBy
       },
@@ -92,10 +89,10 @@ export async function POST(request: Request, { params }: Props) {
     return NextResponse.json({ 
       success: true, 
       isLiked: !isLiked,
-      likesCount: updatedProject.likedBy.length
+      likesCount: updatedPost.likedBy.length
     });
   } catch (error) {
-    console.error("[POST_PROJECT_LIKE]", error);
+    console.error("[POST_LIKE]", error);
     return NextResponse.json(
       { error: "Failed to update like status" },
       { status: 500 }

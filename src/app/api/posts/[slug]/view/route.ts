@@ -3,22 +3,19 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
 
-interface Props {
-  params: {
-    slug: string;
-  };
-}
-
 interface JWTPayload {
   id: string;
   email: string;
   role: string;
 }
 
-export async function POST(request: Request, { params }: Props) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
     const { slug } = await params;
-    
+
     // Lấy thông tin user từ cookie (nếu có)
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
@@ -34,26 +31,26 @@ export async function POST(request: Request, { params }: Props) {
       }
     }
 
-    // Tìm project
-    const project = await prisma.project.findUnique({
+    // Tìm bài viết
+    const post = await prisma.post.findUnique({
       where: { slug },
       select: { id: true, viewedBy: true }
     });
 
-    if (!project) {
+    if (!post) {
       return NextResponse.json(
-        { error: "Project not found" },
+        { error: "Post not found" },
         { status: 404 }
       );
     }
 
     // Đảm bảo viewedBy là array hợp lệ
-    const currentViewedBy = project.viewedBy || [];
-    
-    // Nếu có userId và chưa xem project này
+    const currentViewedBy = post.viewedBy || [];
+
+    // Nếu có userId và chưa xem bài viết này
     if (userId && !currentViewedBy.includes(userId)) {
-      await prisma.project.update({
-        where: { id: project.id },
+      await prisma.post.update({
+        where: { id: post.id },
         data: {
           viewedBy: [...currentViewedBy, userId]
         }
@@ -65,9 +62,9 @@ export async function POST(request: Request, { params }: Props) {
       const forwardedFor = request.headers.get('x-forwarded-for');
       const ip = forwardedFor ? forwardedFor.split(',')[0] : 'unknown';
       const anonymousId = `anon_${ip.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`;
-      
-      await prisma.project.update({
-        where: { id: project.id },
+
+      await prisma.post.update({
+        where: { id: post.id },
         data: {
           viewedBy: [...currentViewedBy, anonymousId]
         }
@@ -76,7 +73,7 @@ export async function POST(request: Request, { params }: Props) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[POST_PROJECT_VIEW]", error);
+    console.error("[POST_VIEW]", error);
     return NextResponse.json(
       { error: "Failed to update view count" },
       { status: 500 }

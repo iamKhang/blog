@@ -3,19 +3,16 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
 
-interface Props {
-  params: {
-    slug: string;
-  };
-}
-
 interface JWTPayload {
   id: string;
   email: string;
   role: string;
 }
 
-export async function GET(request: Request, { params }: Props) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
     const { slug } = await params;
 
@@ -89,7 +86,10 @@ export async function GET(request: Request, { params }: Props) {
   }
 }
 
-export async function PATCH(request: Request, { params }: Props) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
     const { slug } = await params;
     const body = await request.json();
