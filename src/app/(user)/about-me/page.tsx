@@ -3,11 +3,50 @@ import prisma from '@/lib/prisma'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CalendarDays, MapPin, Mail, Github, Linkedin, Twitter } from 'lucide-react'
+import { CalendarDays, MapPin, Mail, Github, Linkedin, Twitter, Eye, Heart } from 'lucide-react'
+import { ProjectCard } from '@/components/project-card'
+import type { Project } from '@/types/project'
 
 export const metadata: Metadata = {
   title: 'About Me',
   description: 'Learn more about me and my skills',
+}
+
+// Hàm tạo màu sắc cho badges công nghệ
+function getTechBadgeColor(techName: string): string {
+  const colors: Record<string, string> = {
+    'Java': 'bg-orange-500 text-white',
+    'JavaScript': 'bg-yellow-400 text-black',
+    'TypeScript': 'bg-blue-600 text-white',
+    'HTML': 'bg-orange-600 text-white',
+    'CSS': 'bg-blue-500 text-white',
+    'React': 'bg-cyan-500 text-white',
+    'React Native': 'bg-cyan-600 text-white',
+    'NextJS': 'bg-black text-white',
+    'NodeJS': 'bg-green-600 text-white',
+    'NestJS': 'bg-red-600 text-white',
+    'MongoDB': 'bg-green-500 text-white',
+    'MySQL': 'bg-blue-700 text-white',
+    'PostgreSQL': 'bg-blue-800 text-white',
+    'Prisma': 'bg-indigo-600 text-white',
+    'Docker': 'bg-blue-400 text-white',
+    'Git': 'bg-orange-700 text-white',
+    'GitHub': 'bg-gray-800 text-white',
+    'Python': 'bg-yellow-500 text-black',
+    'Spring Boot': 'bg-green-700 text-white',
+    'Tailwind CSS': 'bg-teal-500 text-white',
+    'Bootstrap': 'bg-purple-600 text-white',
+    'Vue.js': 'bg-green-400 text-white',
+    'Angular': 'bg-red-500 text-white',
+    'Express.js': 'bg-gray-700 text-white',
+    'Redis': 'bg-red-700 text-white',
+    'AWS': 'bg-orange-400 text-white',
+    'Vercel': 'bg-black text-white',
+    'Supabase': 'bg-green-600 text-white',
+    'Firebase': 'bg-yellow-600 text-white',
+  }
+
+  return colors[techName] || 'bg-gray-500 text-white'
 }
 
 async function getProfile() {
@@ -22,8 +61,51 @@ async function getProfile() {
   return profile
 }
 
+async function getPinnedProjects() {
+  const projects = await prisma.project.findMany({
+    where: {
+      isPinned: true,
+      isHidden: false,
+    },
+    orderBy: {
+      createdAt: 'desc'
+    },
+    take: 3,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      excerpt: true,
+      description: true,
+      thumbnail: true,
+      techStack: true,
+      status: true,
+      viewedBy: true,
+      likedBy: true,
+      isPinned: true,
+      isHidden: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  })
+
+  // Transform projects to include counts
+  return projects.map(project => ({
+    ...project,
+    views: (project.viewedBy || []).length,
+    likes: (project.likedBy || []).length,
+    isLikedByUser: false, // Không cần check user trong about page
+    techStack: project.techStack || [],
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
+  }))
+}
+
 export default async function AboutMePage() {
-  const profile = await getProfile()
+  const [profile, pinnedProjects] = await Promise.all([
+    getProfile(),
+    getPinnedProjects()
+  ])
 
   if (!profile) {
     return (
@@ -50,9 +132,9 @@ export default async function AboutMePage() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative h-48 w-48 rounded-full overflow-hidden">
+                <div className="relative h-48 w-48 rounded-full overflow-hidden border-4 border-blue-200 shadow-lg">
                   <Image
-                    src={profile.avatar}
+                    src="https://nuvyktdqoclzyglcwukn.supabase.co/storage/v1/object/public/avatar-images//anhthe.jpg"
                     alt={profile.name}
                     fill
                     className="object-cover"
@@ -109,11 +191,10 @@ export default async function AboutMePage() {
                       {skills.map((skill) => (
                         <Badge
                           key={skill.id}
-                          variant="secondary"
-                          className="flex items-center space-x-1"
+                          className={`flex items-center space-x-1 ${getTechBadgeColor(skill.name)} hover:opacity-80 transition-opacity`}
                         >
                           <span>{skill.name}</span>
-                          <span className="text-xs">({skill.level}/5)</span>
+                          <span className="text-xs opacity-90">({skill.level}/5)</span>
                         </Badge>
                       ))}
                     </div>
@@ -170,29 +251,52 @@ export default async function AboutMePage() {
             <CardContent className="pt-6">
               <h2 className="text-xl font-semibold mb-4">Experience</h2>
               <div className="space-y-6">
-                {profile.experience.map((exp) => (
-                  <div key={exp.id} className="space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{exp.company}</h3>
-                        <p className="text-gray-600">{exp.position}</p>
+                {profile.experience.length > 0 ? (
+                  profile.experience.map((exp) => (
+                    <div key={exp.id} className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{exp.company}</h3>
+                          <p className="text-gray-600">{exp.position}</p>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <CalendarDays className="h-4 w-4" />
+                          <span>
+                            {new Date(exp.startDate).getFullYear()} - {exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <CalendarDays className="h-4 w-4" />
-                        <span>
-                          {new Date(exp.startDate).getFullYear()} - {exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present'}
-                        </span>
-                      </div>
+                      <div
+                        className="prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: exp.description }}
+                      />
                     </div>
-                    <div
-                      className="prose max-w-none"
-                      dangerouslySetInnerHTML={{ __html: exp.description }}
-                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 italic">Chưa có kinh nghiệm</p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
+
+          {/* Featured Projects */}
+          {pinnedProjects.length > 0 && (
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <span className="text-yellow-500">📌</span>
+                  Featured Projects
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {pinnedProjects.map((project) => (
+                    <ProjectCard key={project.id} project={project} />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
