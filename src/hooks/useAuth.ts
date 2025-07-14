@@ -3,7 +3,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
 // Danh sách các route công khai không cần xác thực
-const publicRoutes = ['/login', '/register']
+const publicRoutes = ['/login', '/register', '/register/email', '/register/verify-otp', '/register/complete']
 
 export const useAuth = () => {
   const router = useRouter()

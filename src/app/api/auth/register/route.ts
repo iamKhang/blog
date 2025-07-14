@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs"; // npm install bcryptjs
+import jwt from "jsonwebtoken";
 import { generateTokens } from "@/lib/jwt";
+import { sendWelcomeEmail } from "@/lib/email";
 
 // Schema validation cho request body
 const registerSchema = z.object({
@@ -12,16 +14,49 @@ const registerSchema = z.object({
   bio: z.string().optional(),
   dob: z.string().optional(), // Nhận dạng ISO date string
   avatar: z.string().optional(),
+  tempToken: z.string(), // Token xác thực OTP
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+
     // Validate request body
     const validatedData = registerSchema.parse(body);
 
-    // Kiểm tra email đã tồn tại
+    // Verify temp token từ OTP verification
+    try {
+      const decoded = jwt.verify(validatedData.tempToken, process.env.JWT_SECRET!) as {
+        email: string
+        verified: boolean
+        purpose: string
+        timestamp: number
+      }
+
+      // Kiểm tra token có hợp lệ không
+      if (decoded.purpose !== 'registration' || !decoded.verified || decoded.email !== validatedData.email) {
+        return NextResponse.json(
+          { error: "Token xác thực không hợp lệ" },
+          { status: 401 }
+        );
+      }
+
+      // Kiểm tra token có quá cũ không (10 phút)
+      if (Date.now() - decoded.timestamp > 10 * 60 * 1000) {
+        return NextResponse.json(
+          { error: "Token xác thực đã hết hạn" },
+          { status: 401 }
+        );
+      }
+    } catch (tokenError) {
+      console.error('Token verification error:', tokenError);
+      return NextResponse.json(
+        { error: "Token xác thực không hợp lệ hoặc đã hết hạn" },
+        { status: 401 }
+      );
+    }
+
+    // Kiểm tra email đã tồn tại (double check)
     const existingUser = await prisma.user.findUnique({
       where: { email: validatedData.email },
     });
@@ -98,6 +133,14 @@ export async function POST(request: Request) {
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/'
     });
+
+    // Gửi email chào mừng (không chặn response nếu thất bại)
+    try {
+      await sendWelcomeEmail(validatedData.email, validatedData.name);
+    } catch (emailError) {
+      console.error('Welcome email error:', emailError);
+      // Không throw error vì đăng ký đã thành công
+    }
 
     console.log("Registration successful for user:", user.id);
     return response;

@@ -124,7 +124,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - login, register (public routes)
+     * - login, register (public routes including all register sub-routes)
      */
     '/((?!api|_next/static|_next/image|favicon.ico|login|register).*)',
   ],
