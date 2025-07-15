@@ -91,7 +91,7 @@ export function PostContent({ content }: PostContentProps) {
   }, [content]);
 
   return (
-    <div className="prose dark:prose-invert max-w-none" ref={contentRef}>
+    <div className="prose dark:prose-invert max-w-full prose-p:leading-relaxed prose-p:mb-4" ref={contentRef}>
       <div dangerouslySetInnerHTML={{ __html: content }} />
     </div>
   );

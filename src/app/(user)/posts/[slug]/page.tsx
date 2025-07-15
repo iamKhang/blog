@@ -161,26 +161,25 @@ export default function PostPage() {
   }
 
   return (
-    <article className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <article className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full overflow-x-hidden">
       {/* Hero Section with Cover Image */}
-      <div className="relative w-full h-[40vh] min-h-[400px] bg-navy-900">
+      <div className="relative w-full h-[40vh] min-h-[300px] sm:min-h-[400px] bg-navy-900 overflow-hidden">
         {post.coverImage ? (
           <Image
             src={post.coverImage}
             alt={post.title}
             fill
-            className="object-cover opacity-20"
+            className="object-cover opacity-20 max-w-full"
             priority
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-navy-800 to-navy-900" />
         )}
-
         {/* Overlay Content */}
         <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 to-transparent" />
-        <div className="container relative h-full max-w-7xl mx-auto px-4 flex flex-col justify-end pb-12 content-post">
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
+        <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 flex flex-col justify-end pb-6 sm:pb-12 content-post h-full">
+          <div className="space-y-2 sm:space-y-4">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {post.tags.map((tag: string) => (
                 <Badge
                   key={tag}
@@ -190,10 +189,10 @@ export default function PostPage() {
                 </Badge>
               ))}
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
               {post.title}
             </h1>
-            <div className="flex items-center gap-6 text-gray-300">
+            <div className="flex flex-wrap items-center gap-4 text-gray-300 text-sm sm:text-base">
               <time className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 {format(new Date(post.createdAt), "dd/MM/yyyy")}
@@ -210,17 +209,16 @@ export default function PostPage() {
           </div>
         </div>
       </div>
-
       {/* Main Content */}
-      <div className="container max-w-7xl mx-auto px-4 py-12">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-6 sm:py-12">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-4 sm:p-8">
           {/* Series Navigation (if post is part of a series) */}
           {post.series && (
-            <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="mb-4 sm:mb-8 p-2 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-medium text-blue-800 dark:text-blue-300">
-                  Part of series:{" "}
+                <h3 className="font-medium text-blue-800 dark:text-blue-300 text-sm sm:text-base">
+                  Part of series: {" "}
                   <Link
                     href={`/series/${post.series.slug}`}
                     className="text-blue-600 dark:text-blue-400 hover:underline"
@@ -229,10 +227,9 @@ export default function PostPage() {
                   </Link>
                 </h3>
               </div>
-
               {post.series.posts.length > 0 && (
-                <div className="mt-3">
-                  <div className="flex flex-col space-y-2">
+                <div className="mt-2 sm:mt-3">
+                  <div className="flex flex-col space-y-1 sm:space-y-2">
                     {post.series.posts.map((seriesPost: SeriesPost) => (
                       <div
                         key={seriesPost.id}
@@ -240,17 +237,17 @@ export default function PostPage() {
                           seriesPost.slug === post.slug
                             ? "bg-blue-100 dark:bg-blue-800/30 font-medium"
                             : "hover:bg-blue-100/50 dark:hover:bg-blue-800/20"
-                        } rounded p-2`}
+                        } rounded p-1 sm:p-2`}
                       >
-                        <span className="w-8 text-center text-sm text-blue-600 dark:text-blue-400">
+                        <span className="w-6 sm:w-8 text-center text-xs sm:text-sm text-blue-600 dark:text-blue-400">
                           {seriesPost.orderInSeries}.
                         </span>
                         {seriesPost.slug === post.slug ? (
-                          <span className="flex-1">{seriesPost.title}</span>
+                          <span className="flex-1 text-xs sm:text-base">{seriesPost.title}</span>
                         ) : (
                           <Link
                             href={`/posts/${seriesPost.slug}`}
-                            className="flex-1 hover:text-blue-700 dark:hover:text-blue-300"
+                            className="flex-1 hover:text-blue-700 dark:hover:text-blue-300 text-xs sm:text-base"
                           >
                             {seriesPost.title}
                           </Link>
@@ -260,10 +257,9 @@ export default function PostPage() {
                   </div>
                 </div>
               )}
-
               {/* Previous/Next Navigation */}
               {post.series.posts.length > 1 && (
-                <div className="flex justify-between mt-4 pt-3 border-t border-blue-200 dark:border-blue-800">
+                <div className="flex justify-between mt-2 sm:mt-4 pt-2 sm:pt-3 border-t border-blue-200 dark:border-blue-800">
                   {(() => {
                     const currentIndex = post.series.posts.findIndex(
                       (p: SeriesPost) => p.slug === post.slug
@@ -274,13 +270,12 @@ export default function PostPage() {
                     const nextPost = currentIndex < post.series.posts.length - 1
                       ? post.series.posts[currentIndex + 1]
                       : null;
-
                     return (
                       <>
                         {prevPost ? (
                           <Link
                             href={`/posts/${prevPost.slug}`}
-                            className="flex items-center text-blue-600 dark:text-blue-400 hover:underline"
+                            className="flex items-center text-blue-600 dark:text-blue-400 hover:underline text-xs sm:text-base"
                           >
                             <ChevronLeft className="h-4 w-4 mr-1" />
                             Previous: {prevPost.title}
@@ -288,11 +283,10 @@ export default function PostPage() {
                         ) : (
                           <span></span>
                         )}
-
                         {nextPost ? (
                           <Link
                             href={`/posts/${nextPost.slug}`}
-                            className="flex items-center text-blue-600 dark:text-blue-400 hover:underline"
+                            className="flex items-center text-blue-600 dark:text-blue-400 hover:underline text-xs sm:text-base"
                           >
                             Next: {nextPost.title}
                             <ChevronRight className="h-4 w-4 ml-1" />
@@ -307,13 +301,11 @@ export default function PostPage() {
               )}
             </div>
           )}
-
           {/* Content */}
           <PostContent content={post.content} />
-
           {/* Tags */}
-          <div className="mt-8 pt-8 border-t dark:border-gray-700">
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-4 sm:mt-8 pt-4 sm:pt-8 border-t dark:border-gray-700">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {post.tags.map((tag: string) => (
                 <Badge
                   key={tag}
@@ -325,13 +317,12 @@ export default function PostPage() {
               ))}
             </div>
           </div>
-
           {/* Interaction Buttons */}
-          <div className="mt-8 pt-8 border-t dark:border-gray-700 flex justify-center gap-4">
+          <div className="mt-4 sm:mt-8 pt-4 sm:pt-8 border-t dark:border-gray-700 flex flex-wrap justify-center gap-2 sm:gap-4">
             <Button
               variant="outline"
               size="lg"
-              className="flex items-center gap-2 min-w-[140px]"
+              className="flex items-center gap-2 min-w-[120px] sm:min-w-[140px]"
             >
               <Eye className="w-5 h-5" />
               <span>{post.views} lượt xem</span>
@@ -339,7 +330,7 @@ export default function PostPage() {
             <Button
               variant="outline"
               size="lg"
-              className={`flex items-center gap-2 min-w-[140px] ${
+              className={`flex items-center gap-2 min-w-[120px] sm:min-w-[140px] ${
                 post.isLikedByUser ? 'bg-red-50 border-red-200 text-red-600' : ''
               }`}
               onClick={handleLike}

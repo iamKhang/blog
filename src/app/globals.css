@@ -59,6 +59,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
 }
 
@@ -270,4 +271,36 @@ pre.language-none {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+/* Custom bullet for prose - override default list style */
+.prose ul {
+  list-style: none !important;
+  padding-left: 0 !important;
+}
+
+.prose ul > li {
+  position: relative;
+  padding-left: 1.5rem !important;
+  margin-bottom: 0.5rem;
+}
+
+.prose ul > li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #6b7280;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* Dark mode support */
+.dark .prose ul > li::before {
+  color: #9ca3af;
+}
+
+/* Remove default marker */
+.prose ul > li::marker {
+  display: none;
 }
