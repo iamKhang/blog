@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
+import { verifyAdminAuth } from "@/lib/auth-utils";
 
 // Schema validation for request body
 const SeriesCreateSchema = z.object({
@@ -74,6 +75,12 @@ export async function GET(request: Request) {
 // POST /api/series - Create a new series
 export async function POST(request: Request) {
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth();
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const body = await request.json();
     const validatedData = SeriesCreateSchema.parse(body);
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { verifyAdminAuth } from "@/lib/auth-utils";
 
 export async function GET() {
   try {
@@ -32,33 +32,13 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    // Get authorization header
-    const authHeader = request.headers.get('authorization');
-    console.log('Authorization header:', authHeader);
-
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.log('No valid authorization header');
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth();
+    if (!authResult.success) {
+      return authResult.response;
     }
 
-    // Verify token
-    const token = authHeader.split(' ')[1];
-    console.log('Token extracted:', token ? 'Present' : 'Missing');
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { email: string; role: string };
-    console.log('Token decoded:', { email: decoded.email, role: decoded.role });
-
-    // Check if user is admin
-    if (decoded.role !== "ADMIN") {
-      console.log('User is not admin:', decoded.role);
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
-    }
+    console.log('Token verified for user:', authResult.decoded.email);
 
     const data = await request.json();
     console.log('Profile update data received:', { id: data.id, name: data.name });
@@ -125,13 +105,6 @@ export async function PUT(request: Request) {
     return NextResponse.json(profile);
   } catch (error) {
     console.error("Error updating profile:", error);
-    if (error instanceof jwt.JsonWebTokenError) {
-      console.log('JWT error:', error.message);
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
     return NextResponse.json(
       { error: "Failed to update profile", details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

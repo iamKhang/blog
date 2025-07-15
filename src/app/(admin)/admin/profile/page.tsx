@@ -12,7 +12,6 @@ import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { TinyEditor } from '@/components/TinyEditor'
 import Image from 'next/image'
-import { authFetch } from '@/store/useAuthStore'
 
 interface Skill {
   id?: string
@@ -152,11 +151,12 @@ export default function ProfilePage() {
       }
 
       console.log('updating profile with data:', cleanProfile)
-      const response = await authFetch('/api/profile', {
+      const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(cleanProfile),
       })
 

@@ -4,6 +4,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
+import { verifyAdminAuth } from "@/lib/auth-utils";
 
 interface JWTPayload {
   id: string;
@@ -131,6 +132,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth();
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const data = await request.json();
     const validatedData = ProjectCreateSchema.parse(data);
 

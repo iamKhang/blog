@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { verifyAdminAuth } from "@/lib/auth-utils";
 
 interface JWTPayload {
   id: string;
@@ -142,6 +143,12 @@ export async function GET(request: Request) {
 // POST /api/posts - Create a new post
 export async function POST(request: Request) {
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth();
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const body = await request.json();
     const {
       title,
@@ -192,6 +199,12 @@ export async function POST(request: Request) {
 // PATCH /api/posts - Update a post
 export async function PATCH(request: Request) {
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth();
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const body = await request.json();
     const { id, ...data } = body;
 
@@ -279,6 +292,12 @@ export async function PATCH(request: Request) {
 // DELETE /api/posts - Delete a post
 export async function DELETE(request: Request) {
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth();
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
