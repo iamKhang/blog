@@ -70,10 +70,10 @@ export default function PostPage() {
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to load post');
-    }
+        }
 
         setPost(data);
-  } catch (error) {
+      } catch (error) {
         console.error('Error fetching post:', error);
         setError(error instanceof Error ? error.message : 'Failed to load post');
       } finally {
@@ -175,33 +175,35 @@ export default function PostPage() {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-navy-800 to-navy-900" />
         )}
+        
         {/* Overlay Content */}
-        <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 to-transparent" />
-        <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 flex flex-col justify-end pb-6 sm:pb-12 content-post h-full">
-          <div className="space-y-2 sm:space-y-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/70 to-transparent" />
+        
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-2 sm:px-4 flex flex-col justify-end pb-6 sm:pb-12 h-full">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex flex-wrap gap-1 sm:gap-2">
               {post.tags.map((tag: string) => (
                 <Badge
                   key={tag}
-                  className="bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 transition-colors"
+                  className="bg-blue-500/30 text-blue-100 hover:bg-blue-500/50 transition-colors border border-blue-400/30"
                 >
                   {tag}
                 </Badge>
               ))}
             </div>
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white leading-tight drop-shadow-lg">
               {post.title}
             </h1>
-            <div className="flex flex-wrap items-center gap-4 text-gray-300 text-sm sm:text-base">
-              <time className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-4 text-gray-200 text-sm sm:text-base">
+              <time className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md">
                 <Calendar className="w-4 h-4" />
                 {format(new Date(post.createdAt), "dd/MM/yyyy")}
               </time>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md">
                 <Eye className="w-4 h-4" />
                 {post.views} lượt xem
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md">
                 <Heart className={`w-4 h-4 ${post.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
                 {post.likes} lượt thích
               </div>
@@ -209,6 +211,7 @@ export default function PostPage() {
           </div>
         </div>
       </div>
+
       {/* Main Content */}
       <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-6 sm:py-12">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-4 sm:p-8">
@@ -227,6 +230,7 @@ export default function PostPage() {
                   </Link>
                 </h3>
               </div>
+
               {post.series.posts.length > 0 && (
                 <div className="mt-2 sm:mt-3">
                   <div className="flex flex-col space-y-1 sm:space-y-2">
@@ -257,6 +261,7 @@ export default function PostPage() {
                   </div>
                 </div>
               )}
+
               {/* Previous/Next Navigation */}
               {post.series.posts.length > 1 && (
                 <div className="flex justify-between mt-2 sm:mt-4 pt-2 sm:pt-3 border-t border-blue-200 dark:border-blue-800">
@@ -270,6 +275,7 @@ export default function PostPage() {
                     const nextPost = currentIndex < post.series.posts.length - 1
                       ? post.series.posts[currentIndex + 1]
                       : null;
+
                     return (
                       <>
                         {prevPost ? (
@@ -283,6 +289,7 @@ export default function PostPage() {
                         ) : (
                           <span></span>
                         )}
+
                         {nextPost ? (
                           <Link
                             href={`/posts/${nextPost.slug}`}
@@ -301,8 +308,10 @@ export default function PostPage() {
               )}
             </div>
           )}
+
           {/* Content */}
           <PostContent content={post.content} />
+
           {/* Tags */}
           <div className="mt-4 sm:mt-8 pt-4 sm:pt-8 border-t dark:border-gray-700">
             <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -317,6 +326,7 @@ export default function PostPage() {
               ))}
             </div>
           </div>
+
           {/* Interaction Buttons */}
           <div className="mt-4 sm:mt-8 pt-4 sm:pt-8 border-t dark:border-gray-700 flex flex-wrap justify-center gap-2 sm:gap-4">
             <Button
@@ -347,4 +357,3 @@ export default function PostPage() {
     </article>
   );
 }
-
