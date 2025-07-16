@@ -6,24 +6,38 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 export function AuthSyncProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Chỉ init nếu chưa authenticated trong store nhưng có thể có cookies
-        if (!isAuthenticated && !user) {
-          console.log('🔍 Checking for existing auth session...');
-          
+        // Nếu đã có auth state từ localStorage, không cần check server
+        if (isAuthenticated && user) {
+          console.log('✅ Auth state already available from localStorage');
+          setIsHydrated(true);
+          return;
+        }
+
+        // Chỉ check server nếu chưa có auth state
+        console.log('🔍 Checking for existing auth session...');
+
+        // Thêm timeout để tránh block quá lâu
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+        try {
           const response = await fetch('/api/auth/init', {
             method: 'GET',
             credentials: 'include',
+            signal: controller.signal,
           });
+
+          clearTimeout(timeoutId);
 
           if (response.ok) {
             const data = await response.json();
             console.log('✅ Found existing session, restoring auth state');
-            
+
             useAuthStore.setState({
               user: data.user,
               isAuthenticated: true,
@@ -31,6 +45,13 @@ export function AuthSyncProvider({ children }: { children: React.ReactNode }) {
             });
           } else {
             console.log('❌ No valid session found');
+          }
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+            console.log('⏰ Auth check timeout, proceeding without auth');
+          } else {
+            throw fetchError;
           }
         }
       } catch (error) {
@@ -55,4 +76,4 @@ export function AuthSyncProvider({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-} 
+}
