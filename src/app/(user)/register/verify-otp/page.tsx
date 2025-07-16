@@ -215,21 +215,45 @@ export default function VerifyOTPPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="bg-blue-900 text-white rounded-t-lg">
-          <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
-            <Shield className="h-6 w-6" />
-            Xác thực OTP
-          </CardTitle>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        background: "linear-gradient(to bottom right, #EC8305, rgb(251 146 60), rgb(250 204 21))",
+        width: "100vw",
+        marginLeft: "calc(-50vw + 50%)",
+        marginRight: "calc(-50vw + 50%)",
+      }}
+    >
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-800/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-blue-700/10 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-500"></div>
+      </div>
+
+      <Card className="w-full max-w-md backdrop-blur-sm bg-white/95 border-0 shadow-2xl relative z-10 overflow-hidden">
+        {/* Header with blue background */}
+        <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-blue-800/90"></div>
+          <div className="relative z-10 text-center py-6">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-[#EC8305] to-orange-500 rounded-full flex items-center justify-center mb-4 shadow-lg ring-4 ring-white/20">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-white mb-2">Xác thực OTP</CardTitle>
+            <p className="text-blue-100 text-sm">Bước 2: Nhập mã xác thực</p>
+          </div>
+          {/* Decorative wave */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-6 bg-white"
+            style={{
+              clipPath: "polygon(0 100%, 100% 100%, 100% 0, 0 100%)",
+            }}
+          ></div>
         </CardHeader>
         
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6 pt-6">
+          <CardContent className="space-y-6 px-8 pt-8">
             <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Bước 2: Nhập mã OTP
-              </h3>
               <p className="text-sm text-gray-600">
                 Mã OTP đã được gửi đến email: <br />
                 <span className="font-semibold text-blue-600">{email}</span>
@@ -237,7 +261,7 @@ export default function VerifyOTPPage() {
             </div>
 
             <div className="space-y-4">
-              <Label className="text-center block">Nhập mã OTP (4 chữ số)</Label>
+              <Label className="text-center block text-gray-700 font-semibold">Nhập mã OTP (4 chữ số)</Label>
               <div className="flex justify-center gap-3">
                 {otp.map((digit, index) => (
                   <Input
@@ -252,7 +276,7 @@ export default function VerifyOTPPage() {
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ''))}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-14 h-14 text-center text-2xl font-bold"
+                    className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all duration-200 rounded-lg"
                     disabled={isLoading}
                   />
                 ))}
@@ -277,7 +301,7 @@ export default function VerifyOTPPage() {
                 size="sm"
                 onClick={handleResendOTP}
                 disabled={!canResend || isResending}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-[#EC8305] hover:text-orange-600 font-medium transition-colors"
               >
                 {isResending ? (
                   <>
@@ -294,33 +318,39 @@ export default function VerifyOTPPage() {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col space-y-4 px-8 pb-8">
             <Button
               type="submit"
-              className="w-full bg-[#EC8305] hover:bg-[#D97704]"
+              className="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold h-12 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] relative overflow-hidden"
               disabled={isLoading || otp.join('').length !== 4}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang xác thực...
-                </>
-              ) : (
-                'Xác thực OTP'
-              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-blue-800 opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="relative z-10 flex items-center justify-center">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Đang xác thực...
+                  </>
+                ) : (
+                  'Xác thực OTP'
+                )}
+              </div>
             </Button>
             
             <Button
               type="button"
               variant="ghost"
               onClick={() => router.push('/register/email')}
-              className="w-full"
+              className="w-full text-gray-600 hover:text-gray-800"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Quay lại
             </Button>
           </CardFooter>
         </form>
+
+        {/* Bottom decorative accent */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#EC8305] to-orange-500"></div>
       </Card>
     </div>
   )

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Mail, ArrowRight } from 'lucide-react'
+import { Loader2, Mail, ArrowRight, UserPlus } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 
 export default function RegisterEmailPage() {
@@ -147,28 +147,55 @@ export default function RegisterEmailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="bg-blue-900 text-white rounded-t-lg">
-          <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
-            <Mail className="h-6 w-6" />
-            Đăng ký tài khoản
-          </CardTitle>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        background: "linear-gradient(to bottom right, #EC8305, rgb(251 146 60), rgb(250 204 21))",
+        width: "100vw",
+        marginLeft: "calc(-50vw + 50%)",
+        marginRight: "calc(-50vw + 50%)",
+      }}
+    >
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-800/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-blue-700/10 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-500"></div>
+      </div>
+
+      <Card className="w-full max-w-md backdrop-blur-sm bg-white/95 border-0 shadow-2xl relative z-10 overflow-hidden">
+        {/* Header with blue background */}
+        <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-blue-800/90"></div>
+          <div className="relative z-10 text-center py-6">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-[#EC8305] to-orange-500 rounded-full flex items-center justify-center mb-4 shadow-lg ring-4 ring-white/20">
+              <UserPlus className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-white mb-2">Đăng ký tài khoản</CardTitle>
+            <p className="text-blue-100 text-sm">Bước 1: Xác thực email</p>
+          </div>
+          {/* Decorative wave */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-6 bg-white"
+            style={{
+              clipPath: "polygon(0 100%, 100% 100%, 100% 0, 0 100%)",
+            }}
+          ></div>
         </CardHeader>
         
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6 pt-6">
+          <CardContent className="space-y-6 px-8 pt-8">
             <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Bước 1: Xác thực email
-              </h3>
               <p className="text-sm text-gray-600">
                 Nhập email của bạn để nhận mã xác thực OTP
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-3">
+              <Label htmlFor="email" className="text-gray-700 font-semibold flex items-center space-x-2">
+                <Mail className="w-4 h-4 text-blue-900" />
+                <span>Email</span>
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -178,6 +205,7 @@ export default function RegisterEmailPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                className="pl-4 pr-4 h-12 border-2 border-gray-200 focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all duration-200 rounded-lg bg-gray-50 focus:bg-white"
               />
             </div>
 
@@ -193,33 +221,41 @@ export default function RegisterEmailPage() {
             )}
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col space-y-6 px-8 pb-8">
             <Button
               type="submit"
-              className="w-full bg-[#EC8305] hover:bg-[#D97704]"
+              className="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold h-12 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] relative overflow-hidden"
               disabled={isLoading || (!canRequestOTP && remainingTime > 0)}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang gửi OTP...
-                </>
-              ) : (
-                <>
-                  Gửi mã OTP
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-blue-800 opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="relative z-10 flex items-center justify-center">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Đang gửi OTP...
+                  </>
+                ) : (
+                  <>
+                    Gửi mã OTP
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
+              </div>
             </Button>
             
-            <div className="text-center text-sm">
-              Đã có tài khoản?{' '}
-              <Link href="/login" className="text-blue-900 hover:underline">
-                Đăng nhập tại đây
-              </Link>
+            <div className="text-center">
+              <span className="text-gray-600 text-sm">
+                Đã có tài khoản?{' '}
+                <Link href="/login" className="text-[#EC8305] hover:text-orange-600 font-semibold transition-colors hover:underline">
+                  Đăng nhập tại đây
+                </Link>
+              </span>
             </div>
           </CardFooter>
         </form>
+
+        {/* Bottom decorative accent */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#EC8305] to-orange-500"></div>
       </Card>
     </div>
   )
