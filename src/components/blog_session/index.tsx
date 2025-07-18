@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useQuery } from '@tanstack/react-query'
+import LoadingSpinner from '@/components/ui/loading-spinner'
 
 interface BlogPost {
   id: string
@@ -51,7 +52,10 @@ export function BlogSection() {
             </p>
           </div>
           <div className="flex justify-center">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent"></div>
+            <LoadingSpinner 
+              size={100} 
+              className="text-blue-600" 
+            />
           </div>
         </div>
       </section>
@@ -93,46 +97,58 @@ export function BlogSection() {
               onHoverStart={() => setHoveredPost(post.id)}
               onHoverEnd={() => setHoveredPost(null)}
             >
-              <Card className="h-full flex flex-col overflow-hidden">
-                <CardHeader className="p-0">
-                  <img 
-                    src={post.coverImage || "https://images.pexels.com/photos/346529/pexels-photo-346529.jpeg?auto=compress&cs=tinysrgb&w=600"} 
-                    alt={post.title} 
-                    className="w-full h-48 object-cover" 
-                  />
-                </CardHeader>
-                <CardContent className="flex-grow p-6">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {post.tags.map((tag) => (
-                      <Badge key={tag}>{tag}</Badge>
-                    ))}
+              <Link href={`/posts/${post.slug}`}>
+                <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100 bg-white cursor-pointer group">
+                  <div className="relative">
+                    {/* 3:2 Aspect Ratio Image */}
+                    <div className="relative w-full aspect-[3/2] overflow-hidden">
+                      <img 
+                        src={post.coverImage || "https://images.pexels.com/photos/346529/pexels-photo-346529.jpeg?auto=compress&cs=tinysrgb&w=600"} 
+                        alt={post.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
                   </div>
-                  <CardTitle className="text-xl mb-2">{post.title}</CardTitle>
-                  <p className="text-gray-600 mb-4 line-clamp-2">{post.excerpt}</p>
-                  <div className="flex items-center text-sm text-gray-500 space-x-4">
-                    <span className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {post.readTime || 5} min read
-                    </span>
-                    <span className="flex items-center">
-                      <Eye className="w-4 h-4 mr-1" />
-                      {post.views || 0}
-                    </span>
-                    <span className="flex items-center">
-                      <Heart className={`w-4 h-4 mr-1 ${post.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
-                      {post.likes || 0}
-                    </span>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-6 pt-0">
-                  <Button asChild className="w-full bg-blue-900 hover:bg-blue-800">
-                    <Link href={`/posts/${post.slug}`}>
-                      Read More
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
+
+                  <CardContent className="p-4 flex-grow">
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {post.tags.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {post.tags.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{post.tags.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <CardTitle className="text-lg font-bold mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      {post.title}
+                    </CardTitle>
+                    <p className="text-gray-600 mb-3 line-clamp-2 text-sm">{post.excerpt}</p>
+                  </CardContent>
+
+                  <CardFooter className="flex justify-between items-center p-4 pt-0">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {post.readTime || 5} min
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-1 text-gray-500">
+                        <Eye size={14} />
+                        <span className="text-xs">{post.views || 0}</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-gray-500">
+                        <Heart size={14} className={post.isLikedByUser ? "fill-red-500 text-red-500" : ""} />
+                        <span className="text-xs">{post.likes || 0}</span>
+                      </div>
+                    </div>
+                  </CardFooter>
+                </Card>
+              </Link>
             </motion.div>
           ))}
         </div>

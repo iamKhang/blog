@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Pin } from 'lucide-react'
 import { ProjectCard } from '@/components/project-card'
 import type { Project } from '@/types/project'
+import LoadingSpinner from '@/components/ui/loading-spinner'
 
 export function ProjectShowcase() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -54,8 +55,19 @@ export function ProjectShowcase() {
   if (loading) {
     return (
       <section className="py-16 bg-gradient-to-b from-transparent to-blue-900/5">
-        <div className="container mx-auto px-4 flex justify-center items-center min-h-[200px]">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-blue-900 mb-4">Featured Projects</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Loading projects...
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <LoadingSpinner 
+              size={100} 
+              className="text-blue-600" 
+            />
+          </div>
         </div>
       </section>
     )
@@ -84,10 +96,19 @@ export function ProjectShowcase() {
   return (
     <section className="py-16 bg-gradient-to-b from-transparent to-blue-900/5">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-blue-900 mb-8 text-center">
-          Featured Projects
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="text-center mb-10">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-full">
+              <Pin className="w-5 h-5 text-yellow-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-blue-900">Featured Projects</h2>
+          </div>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Showcase of my most notable development work and experiments
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {projects.length > 0 ? (
             projects.map((project) => (
               <motion.div
@@ -100,8 +121,12 @@ export function ProjectShowcase() {
               </motion.div>
             ))
           ) : (
-            <div className="col-span-full text-center py-8">
-              <p className="text-gray-500">No featured projects found.</p>
+            <div className="col-span-full text-center py-12">
+              <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                <Pin className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No featured projects</h3>
+              <p className="text-gray-500">Check back later for featured projects!</p>
             </div>
           )}
         </div>
