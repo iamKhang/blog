@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/pagination"
 import { Eye, Heart, Clock, BookOpen, Pin } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import LoadingSpinner from "@/components/ui/loading-spinner"
 
 interface Post {
   id: string
@@ -246,11 +247,19 @@ export default function BlogPostsPage() {
     return (
       <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="h-12 w-64 bg-gray-200 rounded animate-pulse mb-12" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(12)].map((_, i) => (
-              <LoadingCard key={i} />
-            ))}
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+            <LoadingSpinner 
+              size={150} 
+              className="text-blue-600 scale-75 sm:scale-90 lg:scale-100 transition-transform" 
+            />
+            <div className="text-center space-y-2">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-700">
+                Đang tải bài viết...
+              </h2>
+              <p className="text-sm md:text-base text-gray-500">
+                Vui lòng đợi trong giây lát
+              </p>
+            </div>
           </div>
         </div>
       </div>

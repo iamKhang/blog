@@ -16,6 +16,7 @@ import { Loader2, ImagePlus, X, EyeIcon, EyeOffIcon, User, Lock, Calendar, Mail,
 import { uploadFile } from "@/lib/supabase"
 import { TinyEditor } from "@/components/TinyEditor"
 import Image from "next/image"
+import LoadingSpinner from "@/components/ui/loading-spinner"
 
 export default function ProfilePage() {
   const { user, isLoading, error, refresh } = useUser()
@@ -212,42 +213,19 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="h-12 w-64 bg-gray-200 rounded animate-pulse mb-12" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <Skeleton className="h-8 w-48" />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center space-x-6">
-                    <Skeleton className="h-32 w-32 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-6 w-48" />
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div>
-              <Card>
-                <CardHeader>
-                  <Skeleton className="h-6 w-32" />
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </CardContent>
-              </Card>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+            <LoadingSpinner 
+              size={150} 
+              className="text-blue-600 scale-75 sm:scale-90 lg:scale-100 transition-transform" 
+            />
+            <div className="text-center space-y-2">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-700">
+                Đang tải hồ sơ...
+              </h2>
+              <p className="text-sm md:text-base text-gray-500">
+                Vui lòng đợi trong giây lát
+              </p>
             </div>
           </div>
         </div>
