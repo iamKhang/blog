@@ -14,6 +14,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Eye, Heart, Calendar, Pin, Code } from "lucide-react"
+import LoadingSpinner from "@/components/ui/loading-spinner"
 
 interface Project {
   id: string
@@ -137,28 +138,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
   )
 }
 
-const LoadingCard = () => (
-  <Card className="overflow-hidden">
-    <div className="relative w-full aspect-[3/2] bg-gray-200 animate-pulse" />
-    <CardContent className="p-4">
-      <div className="h-5 bg-gray-200 rounded animate-pulse mb-2" />
-      <div className="h-4 bg-gray-200 rounded animate-pulse mb-2" />
-      <div className="h-4 bg-gray-200 rounded animate-pulse mb-3 w-3/4" />
-      <div className="flex gap-2 mb-3">
-        <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
-        <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
-        <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
-      </div>
-    </CardContent>
-    <CardFooter className="flex justify-between p-4 pt-0">
-      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-      <div className="flex space-x-3">
-        <div className="h-4 w-8 bg-gray-200 rounded animate-pulse" />
-        <div className="h-4 w-8 bg-gray-200 rounded animate-pulse" />
-      </div>
-    </CardFooter>
-  </Card>
-)
+
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -196,11 +176,19 @@ export default function ProjectsPage() {
     return (
       <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="h-12 w-64 bg-gray-200 rounded animate-pulse mb-12" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(12)].map((_, i) => (
-              <LoadingCard key={i} />
-            ))}
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+            <LoadingSpinner 
+              size={150} 
+              className="text-blue-600 scale-75 sm:scale-90 lg:scale-100 transition-transform" 
+            />
+            <div className="text-center space-y-2">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-700">
+                Đang tải dự án...
+              </h2>
+              <p className="text-sm md:text-base text-gray-500">
+                Vui lòng đợi trong giây lát
+              </p>
+            </div>
           </div>
         </div>
       </div>

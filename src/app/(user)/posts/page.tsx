@@ -182,27 +182,7 @@ const SeriesCard = ({ series }: { series: SeriesWithCount }) => (
   </Card>
 )
 
-const LoadingCard = () => (
-  <Card className="overflow-hidden">
-    <div className="relative w-full aspect-[3/2] bg-gray-200 animate-pulse" />
-    <CardContent className="p-4">
-      <div className="h-5 bg-gray-200 rounded animate-pulse mb-2" />
-      <div className="h-4 bg-gray-200 rounded animate-pulse mb-2" />
-      <div className="h-4 bg-gray-200 rounded animate-pulse mb-3 w-3/4" />
-      <div className="flex gap-2 mb-3">
-        <div className="h-5 w-12 bg-gray-200 rounded animate-pulse" />
-        <div className="h-5 w-12 bg-gray-200 rounded animate-pulse" />
-      </div>
-    </CardContent>
-    <CardFooter className="flex justify-between p-4 pt-0">
-      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-      <div className="flex space-x-3">
-        <div className="h-4 w-8 bg-gray-200 rounded animate-pulse" />
-        <div className="h-4 w-8 bg-gray-200 rounded animate-pulse" />
-      </div>
-    </CardFooter>
-  </Card>
-)
+
 
 export default function BlogPostsPage() {
   const [posts, setPosts] = useState<Post[]>([])

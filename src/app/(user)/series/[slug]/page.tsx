@@ -1,4 +1,7 @@
-import { notFound } from "next/navigation";
+"use client"
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -10,13 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Heart, Calendar } from "lucide-react";
+import { Eye, Heart, Calendar, BookOpen } from "lucide-react";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
-interface Props {
-  params: Promise<{
-    slug: string;
-  }>;
-}
+
 
 interface Post {
   id: string;
@@ -38,33 +38,86 @@ interface Series {
   posts: Post[];
 }
 
-async function getSeries(slug: string) {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/series/by-slug/${slug}`,
-      {
-        next: { revalidate: 60 },
+export default function SeriesPage() {
+  const params = useParams();
+  const [series, setSeries] = useState<Series | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSeries = async () => {
+      if (!params.slug) {
+        setError('Invalid series URL');
+        setLoading(false);
+        return;
       }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(`/api/series/by-slug/${params.slug}`);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Series not found');
+          } else {
+            throw new Error('Failed to fetch series');
+          }
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        setSeries(data);
+      } catch (error) {
+        console.error('Error fetching series:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load series');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSeries();
+  }, [params.slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container max-w-7xl mx-auto px-4 py-12">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+            <LoadingSpinner 
+              size={150} 
+              className="text-blue-600 scale-75 sm:scale-90 lg:scale-100 transition-transform" 
+            />
+            <div className="text-center space-y-2">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-700">
+                Đang tải series...
+              </h2>
+              <p className="text-sm md:text-base text-gray-500">
+                Vui lòng đợi trong giây lát
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     );
-
-    if (!response.ok) {
-      if (response.status === 404) return null;
-      throw new Error("Failed to fetch series");
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error("[GET_SERIES]", error);
-    throw new Error("Failed to fetch series");
   }
-}
 
-export default async function SeriesPage({ params }: Props) {
-  const { slug } = await params;
-  const series = await getSeries(slug);
-
-  if (!series) {
-    notFound();
+  if (error || !series) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container max-w-7xl mx-auto px-4 py-12">
+          <div className="text-center py-16">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+              <BookOpen className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Series not found</h3>
+            <p className="text-gray-500">{error || 'The series you\'re looking for might not exist or has been removed.'}</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Sort posts by orderInSeries
